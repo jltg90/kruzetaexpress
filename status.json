@@ -27,7 +27,7 @@
     "deploy_produccion": "completado"
   },
   "publico_en_portafolio": true,
-  "screenshot": "",
+  "screenshot": "/screenshots/kruzetaexpress.png",
   "ultima_sesion": "2026-07-23",
   "siguiente_paso": "Confirmar responsive móvil. Migrado a git + GitHub el 2026-07-23: se agregó .gitignore que no existía; el repo ya vivía en GitHub (subido vía 'Add files via upload' en marzo 2026), ahora también clonado en C:\\dev\\kruzetaexpress.",
   "notas": "Sitio estático de una sola página (HTML/CSS/JS vanilla), sin backend. Export a PDF vía jsPDF. Desplegado en GitHub Pages (jltg90.github.io/kruzetaexpress), no en Vercel. Sin código fuente adicional fuera del repo — el repo de GitHub es la única fuente conocida."
