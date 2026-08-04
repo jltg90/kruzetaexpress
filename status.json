@@ -1,4 +1,5 @@
 {
+  "_generado": "GENERADO por la plataforma Cuadra — no editar a mano. La fuente de verdad es la tabla `proyectos` en Convex; para cambiar algo, hazlo en la plataforma o con scripts/actualizar-estado.mjs.",
   "proyecto": "kruzetaexpress",
   "nombre_display": "Kruzeta Express — Configurador de Pista de Baile",
   "cliente": "Kruzeta",
@@ -8,23 +9,22 @@
   "estado_general": "entregado",
   "urls": {
     "produccion": "https://jltg90.github.io/kruzetaexpress/",
-    "staging": "",
     "repo": "https://github.com/jltg90/kruzetaexpress"
   },
   "modulos": {
     "auth_login": "no_aplica",
-    "roles_permisos": "no_aplica",
-    "seguridad": "no_aplica",
     "base_datos": "no_aplica",
-    "ui_principal": "completado",
     "dashboard_admin": "no_aplica",
-    "pagos": "no_aplica",
+    "deploy_produccion": "completado",
     "notificaciones": "no_aplica",
+    "pagos": "no_aplica",
     "reportes": "completado",
     "responsive_movil": "pendiente",
+    "roles_permisos": "no_aplica",
+    "seguridad": "no_aplica",
     "seo": "no_aplica",
     "testing": "no_aplica",
-    "deploy_produccion": "completado"
+    "ui_principal": "completado"
   },
   "publico_en_portafolio": true,
   "screenshot": "/screenshots/kruzetaexpress.png",
