@@ -816,7 +816,7 @@ function layoutFloor(){
   if(!main||!fc) return;
   const cs=getComputedStyle(main);
   const availW=main.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
-  const availH=main.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-76;
+  const availH=main.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-96;
   let w,h;
   if(viewMode==='3d'){
     w=Math.min(availW,820); h=Math.min(Math.max(availH,220),w*0.72);
