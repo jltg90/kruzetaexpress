@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kruzeta — Dance Floor Configurator</title>
+<title>Kruzeta — Configurador de Pista de Baile</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root { --cream:#f5f0e8; --charcoal:#1a1a1a; --gold:#c9a84c; --mid:#888; --panel-bg:rgba(250,247,242,0.97); --border:rgba(0,0,0,0.08); }
@@ -32,7 +33,30 @@
   .design-sub { font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:0.1em; font-family:'Courier New',monospace; display:block; margin-top:2px; }
   .main { flex:1; display:flex; align-items:center; justify-content:center; background:#111; position:relative; overflow:hidden; padding:36px; }
   .main::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 30%,rgba(201,168,76,0.04) 0%,transparent 70%); pointer-events:none; }
-  .floor-container { position:relative; width:100%; max-width:560px; aspect-ratio:1; }
+  .floor-container { position:relative; width:100%; }
+  #threeWrap { display:none; width:100%; height:100%; border-radius:4px; overflow:hidden; box-shadow:0 40px 120px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.04); cursor:grab; touch-action:none; }
+  #threeWrap:active { cursor:grabbing; }
+  #threeWrap canvas { display:block; width:100% !important; height:100% !important; }
+  .floor-container.mode-3d #threeWrap { display:block; }
+  .floor-container.mode-3d #mainCanvas { display:none; }
+  .view-toggle { position:absolute; top:-38px; left:50%; transform:translateX(-50%); display:flex; gap:2px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:3px; z-index:2; }
+  .view-btn { background:none; border:none; cursor:pointer; font-family:'Montserrat',sans-serif; font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); padding:5px 12px; border-radius:14px; transition:all 0.2s; white-space:nowrap; }
+  .view-btn:hover { color:rgba(255,255,255,0.7); }
+  .view-btn.active { background:var(--gold); color:var(--charcoal); }
+  .dim-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .dim-grid label { display:flex; flex-direction:column; gap:5px; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--mid); }
+  .dim-grid select { font-family:'Montserrat',sans-serif; font-size:12px; padding:8px 10px; border:1px solid var(--border); border-radius:4px; background:#fff; color:var(--charcoal); width:100%; }
+  .dim-info { font-size:11px; color:var(--charcoal); margin-top:10px; letter-spacing:0.03em; }
+  .dim-hint { font-size:9.5px; color:var(--mid); margin-top:3px; font-weight:300; }
+  .fit-row { display:flex; align-items:center; justify-content:space-between; margin-top:14px; gap:8px; }
+  .fit-label { font-size:10px; color:var(--mid); letter-spacing:0.05em; white-space:nowrap; }
+  .seg { display:flex; border:1px solid var(--border); border-radius:14px; padding:2px; }
+  .seg-btn { background:none; border:none; cursor:pointer; font-family:'Montserrat',sans-serif; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--mid); padding:4px 10px; border-radius:12px; transition:all 0.15s; }
+  .seg-btn.active { background:var(--charcoal); color:var(--cream); }
+  .zoom-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
+  .zoom-row input[type=range] { flex:1; accent-color:var(--charcoal); }
+  .chk { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:10px; color:var(--mid); cursor:pointer; }
+  .chk input { accent-color:var(--charcoal); }
   #mainCanvas { width:100%; height:100%; display:block; border-radius:2px; box-shadow:0 40px 120px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.04); }
   .canvas-label { position:absolute; bottom:-26px; left:50%; transform:translateX(-50%); font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.2); white-space:nowrap; }
   #transitionOverlay { position:absolute; inset:0; background:#111; pointer-events:none; opacity:0; transition:opacity 0.25s; border-radius:2px; }
@@ -105,7 +129,8 @@
     .design-btn.active::before { left:0; top:auto; bottom:0; right:0; width:100%; height:2px; }
 
     /* Main canvas area: less padding */
-    .main { padding:16px; min-height:260px; }
+    .main { padding:16px 12px 48px; min-height:400px; }
+    .canvas-label { white-space:normal; width:100%; text-align:center; bottom:-34px; line-height:1.5; }
 
     /* Panel: full width below canvas */
     .panel {
@@ -143,8 +168,8 @@
     <div class="tagline" data-i18n="tagline">Dance Floor Configurator</div>
   </div>
   <div class="lang-toggle">
-    <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
-    <button class="lang-btn" onclick="setLang('es')" id="btn-es">ES</button>
+    <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+    <button class="lang-btn active" onclick="setLang('es')" id="btn-es">ES</button>
   </div>
 </header>
 <div class="app">
@@ -201,10 +226,15 @@
   </div>
   <div class="main">
     <div class="loading-screen" id="loading"><span class="loader-text" data-i18n="loading">Loading…</span></div>
-    <div class="floor-container">
+    <div class="floor-container" id="floorContainer">
+      <div class="view-toggle">
+        <button class="view-btn active" id="viewTop" onclick="setView('top')" data-i18n="viewTop">Vista superior</button>
+        <button class="view-btn" id="view3d" onclick="setView('3d')" data-i18n="view3d">Vista 3D</button>
+      </div>
       <canvas id="mainCanvas" width="1024" height="1024"></canvas>
+      <div id="threeWrap"></div>
       <div id="transitionOverlay"></div>
-      <div class="canvas-label" data-i18n="preview">Dance Floor Preview — Top View</div>
+      <div class="canvas-label" id="canvasLabel">Vista Previa — Vista Superior</div>
     </div>
   </div>
   <div class="panel">
@@ -212,6 +242,27 @@
       <div class="section-title" data-i18n="activeDesign">Active Design</div>
       <div class="active-design-name" id="activeName">Blurry</div>
       <div class="active-design-desc" id="activeDesc"></div>
+    </div>
+    <div class="panel-section">
+      <div class="section-title" data-i18n="dimensions">Medidas de la pista</div>
+      <div class="dim-grid">
+        <label><span data-i18n="width">Ancho</span><select id="dimW" onchange="setDims('w')"></select></label>
+        <label><span data-i18n="depth">Largo</span><select id="dimD" onchange="setDims('d')"></select></label>
+      </div>
+      <div class="dim-info" id="dimInfo"></div>
+      <div class="dim-hint" data-i18n="dimHint">Múltiplos de 1.22 m · mínimo 2.44 × 3.66 m</div>
+      <div class="fit-row">
+        <span class="fit-label" data-i18n="fit">Ajuste del diseño</span>
+        <div class="seg">
+          <button class="seg-btn active" id="fitCover" onclick="setFit('cover')" data-i18n="fitCover">Cubrir</button>
+          <button class="seg-btn" id="fitStretch" onclick="setFit('stretch')" data-i18n="fitStretch">Estirar</button>
+        </div>
+      </div>
+      <div class="zoom-row">
+        <span class="fit-label"><span data-i18n="zoom">Zoom</span> <span id="zoomVal">100%</span></span>
+        <input type="range" id="zoomRange" min="100" max="250" value="100" oninput="setZoom(this.value)">
+      </div>
+      <label class="chk"><input type="checkbox" id="showSeams" onchange="toggleSeams(this.checked)"><span data-i18n="seams">Mostrar paneles (1.22 m)</span></label>
     </div>
     <div class="panel-section">
       <div class="section-title" data-i18n="colorZones">Color Zones</div>
@@ -264,6 +315,15 @@ const T = {
     pdf_title:'Dance Floor Configuration', pdf_design:'Selected Design',
     pdf_colors:'Color Selection', pdf_note:'Please send this document to confirm your selection.',
     pdf_date:'Date',
+    viewTop:'Top view', view3d:'3D view',
+    preview3d:'3D Preview — drag to rotate · scroll to zoom',
+    dimensions:'Floor size', width:'Width', depth:'Length',
+    dimHint:'Multiples of 1.22 m · minimum 2.44 × 3.66 m',
+    fit:'Design fit', fitCover:'Cover', fitStretch:'Stretch', zoom:'Zoom',
+    seams:'Show panels (1.22 m)', panels:'panels',
+    pdf_size:'Floor Size', pdf_panels:'panels of 1.22 × 1.22 m', pdf_fit_cover:'Design fit: cover (cropped)', pdf_fit_stretch:'Design fit: stretched',
+    pdf_3d:'3D View', pdf_3d_note:'Illustrative render. Colors may vary slightly on the printed floor.',
+    threeMissing:'The 3D view could not be loaded. Check your internet connection.',
   },
   es: {
     tagline:'Configurador de Pista de Baile', designs:'Diseños', loading:'Cargando…',
@@ -290,17 +350,28 @@ const T = {
     pdf_title:'Configuración de Pista de Baile', pdf_design:'Diseño Seleccionado',
     pdf_colors:'Selección de Colores', pdf_note:'Por favor envía este documento para confirmar tu selección.',
     pdf_date:'Fecha',
+    viewTop:'Vista superior', view3d:'Vista 3D',
+    preview3d:'Vista 3D — arrastra para girar · rueda para acercar',
+    dimensions:'Medidas de la pista', width:'Ancho', depth:'Largo',
+    dimHint:'Múltiplos de 1.22 m · mínimo 2.44 × 3.66 m',
+    fit:'Ajuste del diseño', fitCover:'Cubrir', fitStretch:'Estirar', zoom:'Zoom',
+    seams:'Mostrar paneles (1.22 m)', panels:'paneles',
+    pdf_size:'Medidas de la Pista', pdf_panels:'paneles de 1.22 × 1.22 m', pdf_fit_cover:'Ajuste del diseño: cubrir (recortado)', pdf_fit_stretch:'Ajuste del diseño: estirado',
+    pdf_3d:'Vista 3D', pdf_3d_note:'Render ilustrativo. Los colores pueden variar ligeramente en la pista impresa.',
+    threeMissing:'No se pudo cargar la vista 3D. Revisa tu conexión a internet.',
   }
 };
-let lang='en';
+let lang='es';
 function t(k){ return T[lang][k]||T.en[k]||k; }
 function setLang(l) {
   lang=l;
   document.getElementById('btn-en').classList.toggle('active',l==='en');
   document.getElementById('btn-es').classList.toggle('active',l==='es');
   document.getElementById('logoSubtitle').textContent = l==='en' ? 'Express Designs' : 'Diseños Express';
+  document.documentElement.lang=l;
+  document.title = l==='en' ? 'Kruzeta — Dance Floor Configurator' : 'Kruzeta — Configurador de Pista de Baile';
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.getAttribute('data-i18n')); });
-  buildUI(); buildPalettes();
+  buildUI(); buildPalettes(); updateDimInfo(); updateLabel();
 }
 
 const MASKS = {
@@ -471,11 +542,14 @@ function loadAllImages() {
 }
 function onAllLoaded() {
   document.getElementById('loading').classList.add('hidden');
-  renderThumbnails(); renderMain(); buildUI(); buildPalettes();
+  buildDimSelects(); layoutFloor(); renderThumbnails(); renderMain(); setLang(lang);
+  window.addEventListener('resize', layoutFloor);
 }
 function hexToRgb(hex){ return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]; }
 
-function renderToCanvas(canvas,design,dc,size) {
+function renderToCanvas(canvas,design,dc,size,opts) {
+  opts=opts||{};
+  const aspect=opts.aspect||1, fit=opts.fit||'cover', z=opts.zoom||1;
   const ctx=canvas.getContext('2d');
   const w=canvas.width,h=canvas.height;
   ctx.clearRect(0,0,w,h);
@@ -485,9 +559,13 @@ function renderToCanvas(canvas,design,dc,size) {
   zones.forEach(zone=>{
     const maskImg=maskImages[zone.mask];
     if(!maskImg) return;
+    const iw=maskImg.naturalWidth||maskImg.width, ih=maskImg.naturalHeight||maskImg.height;
+    let sw=iw/z, sh=ih/z;
+    if(fit==='cover'){ const ia=iw/ih; if(aspect>ia) sh=(iw/aspect)/z; else sw=(ih*aspect)/z; }
+    const sx=(iw-sw)/2, sy=(ih-sh)/2;
     const off=document.createElement('canvas'); off.width=w; off.height=h;
     const octx=off.getContext('2d');
-    octx.drawImage(maskImg,0,0,w,h);
+    octx.drawImage(maskImg,sx,sy,sw,sh,0,0,w,h);
     const maskData=octx.getImageData(0,0,w,h);
     const cc=document.createElement('canvas'); cc.width=w; cc.height=h;
     const cctx=cc.getContext('2d');
@@ -498,14 +576,29 @@ function renderToCanvas(canvas,design,dc,size) {
     }
     cctx.putImageData(imgData,0,0); ctx.drawImage(cc,0,0);
   });
+  if(opts.seams && opts.panels){
+    const {w:pw,d:pd}=opts.panels;
+    ctx.save(); ctx.lineWidth=Math.max(1,w/700);
+    for(let i=1;i<pw;i++){ const x=Math.round(i/pw*w)+0.5; ctx.strokeStyle='rgba(0,0,0,0.22)'; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.beginPath(); ctx.moveTo(x+ctx.lineWidth,0); ctx.lineTo(x+ctx.lineWidth,h); ctx.stroke(); }
+    for(let j=1;j<pd;j++){ const y=Math.round(j/pd*h)+0.5; ctx.strokeStyle='rgba(0,0,0,0.22)'; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.beginPath(); ctx.moveTo(0,y+ctx.lineWidth); ctx.lineTo(w,y+ctx.lineWidth); ctx.stroke(); }
+    ctx.restore();
+  }
   if(size>100){
-    const v=ctx.createRadialGradient(w/2,h/2,w*0.3,w/2,h/2,w*0.75);
+    const v=ctx.createRadialGradient(w/2,h/2,Math.max(w,h)*0.3,w/2,h/2,Math.max(w,h)*0.75);
     v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,0.15)');
     ctx.fillStyle=v; ctx.fillRect(0,0,w,h);
   }
 }
 
-function renderMain(){ renderToCanvas(document.getElementById('mainCanvas'),currentDesign,colors[currentDesign],1024); }
+function renderOpts(){ return {aspect:floorAspect(),fit:fitMode,zoom:zoomLevel,seams:showSeams,panels:{w:floor.w,d:floor.d}}; }
+function renderMain(){
+  const c=document.getElementById('mainCanvas');
+  const MAX=1024, a=floorAspect();
+  const cw=a>=1?MAX:Math.round(MAX*a), ch=a>=1?Math.round(MAX/a):MAX;
+  if(c.width!==cw||c.height!==ch){ c.width=cw; c.height=ch; }
+  renderToCanvas(c,currentDesign,colors[currentDesign],MAX,renderOpts());
+  if(three){ three.texture.needsUpdate=true; }
+}
 function renderThumbnails(){ Object.keys(DESIGNS).forEach(d=>{ const c=document.getElementById('thumb-'+d); if(c) renderToCanvas(c,d,colors[d],44); }); }
 
 function buildUI() {
@@ -588,7 +681,7 @@ async function exportPDF() {
     doc.setFontSize(8); doc.setTextColor(201,168,76); doc.setCharSpace(3);
     doc.text('DISEÑOS EXPRESS',margin,34); doc.setCharSpace(0);
     doc.setTextColor(180,170,155); doc.setFontSize(8); doc.setCharSpace(2);
-    doc.text('DANCE FLOOR CONFIGURATOR',margin,44); doc.setCharSpace(0);
+    doc.text(t('tagline').toUpperCase(),margin,44); doc.setCharSpace(0);
     doc.setTextColor(26,26,26); doc.setFontSize(26); doc.setFont('helvetica','bold');
     doc.text(t('pdf_title'),margin,76);
     const dateStr=new Date().toLocaleDateString(lang==='es'?'es-MX':'en-US',{year:'numeric',month:'long',day:'numeric'});
@@ -599,18 +692,33 @@ async function exportPDF() {
     doc.text(t('pdf_design').toUpperCase(),margin,101); doc.setCharSpace(0);
     doc.setFontSize(18); doc.setTextColor(26,26,26); doc.setFont('helvetica','bold');
     doc.text(DESIGNS[currentDesign].name,margin,112);
-    const previewCanvas=document.createElement('canvas'); previewCanvas.width=800; previewCanvas.height=800;
-    renderToCanvas(previewCanvas,currentDesign,colors[currentDesign],800);
+    // ── Vista superior (respeta la proporción de la pista) ──
+    const aspect=floorAspect();
+    const previewCanvas=document.createElement('canvas'); const PW=1000;
+    if(aspect>=1){ previewCanvas.width=PW; previewCanvas.height=Math.round(PW/aspect); } else { previewCanvas.height=PW; previewCanvas.width=Math.round(PW*aspect); }
+    renderToCanvas(previewCanvas,currentDesign,colors[currentDesign],PW,renderOpts());
     const previewImg=previewCanvas.toDataURL('image/jpeg',0.92);
-    const imgSize=130,imgX=(W-imgSize)/2;
-    doc.addImage(previewImg,'JPEG',imgX,120,imgSize,imgSize);
-    doc.setDrawColor(220,215,205); doc.setLineWidth(0.3); doc.rect(imgX,120,imgSize,imgSize);
-    const zonesY=262;
-    doc.setDrawColor(220,215,205); doc.setLineWidth(0.4); doc.line(margin,zonesY-4,W-margin,zonesY-4);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(136,136,136); doc.setCharSpace(2);
-    doc.text(t('pdf_colors').toUpperCase(),margin,zonesY+6); doc.setCharSpace(0);
+    const maxImgW=W-margin*2, maxImgH=88;
+    let imgW=maxImgW, imgH=imgW/aspect; if(imgH>maxImgH){ imgH=maxImgH; imgW=imgH*aspect; }
+    const imgX=(W-imgW)/2, imgY=118;
+    doc.addImage(previewImg,'JPEG',imgX,imgY,imgW,imgH);
+    doc.setDrawColor(220,215,205); doc.setLineWidth(0.3); doc.rect(imgX,imgY,imgW,imgH);
+    // ── Medidas ──
+    let y=imgY+maxImgH+8;
+    doc.setDrawColor(220,215,205); doc.setLineWidth(0.4); doc.line(margin,y,W-margin,y);
+    y+=8; doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(136,136,136); doc.setCharSpace(2);
+    doc.text(t('pdf_size').toUpperCase(),margin,y); doc.setCharSpace(0);
+    y+=7; doc.setFontSize(13); doc.setTextColor(26,26,26); doc.setFont('helvetica','bold');
+    doc.text(fm(floor.w)+' × '+fm(floor.d)+' m',margin,y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(136,136,136);
+    doc.text(floorArea()+' m²  ·  '+(floor.w*floor.d)+' '+t('pdf_panels')+'  ·  '+t(fitMode==='cover'?'pdf_fit_cover':'pdf_fit_stretch')+(zoomLevel!==1?' · zoom '+Math.round(zoomLevel*100)+'%':''),W-margin,y,{align:'right'});
+    // ── Colores ──
+    y+=6; doc.setDrawColor(220,215,205); doc.setLineWidth(0.4); doc.line(margin,y,W-margin,y);
+    y+=8; doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(136,136,136); doc.setCharSpace(2);
+    doc.text(t('pdf_colors').toUpperCase(),margin,y); doc.setCharSpace(0);
+    const drawColors=(swatchY)=>{
     const zones=DESIGNS[currentDesign].zones;
-    const swatchY=zonesY+16,swatchSize=12;
+    const swatchSize=12;
     const colWidth=(W-margin*2)/zones.length;
     zones.forEach((zone,i)=>{
       const col=colors[currentDesign][zone.id]||zone.default;
@@ -623,13 +731,197 @@ async function exportPDF() {
       doc.setFontSize(9); doc.setTextColor(26,26,26); doc.setFont('helvetica','bold');
       doc.text(col.toUpperCase(),x+swatchSize+3,swatchY+11);
     });
-    doc.setFillColor(245,240,232); doc.rect(0,H-24,W,24,'F');
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(136,136,136);
-    doc.text(t('pdf_note'),margin,H-11);
-    doc.setTextColor(201,168,76); doc.text('kruzeta.com',W-margin,H-11,{align:'right'});
-    doc.save(`kruzeta-${currentDesign}-${new Date().toISOString().slice(0,10)}.pdf`);
+    };
+    drawColors(y+5);
+    const drawFooter=()=>{
+      doc.setFillColor(245,240,232); doc.rect(0,H-24,W,24,'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(136,136,136);
+      doc.text(t('pdf_note'),margin,H-11);
+      doc.setTextColor(201,168,76); doc.text('kruzeta.com',W-margin,H-11,{align:'right'});
+    };
+    drawFooter();
+    // ── Página 2: vista 3D ──
+    const snap=snapshot3D(1500,1125);
+    if(snap){
+      doc.addPage();
+      doc.setFillColor(26,26,26); doc.rect(0,0,W,30,'F');
+      doc.setFillColor(201,168,76); doc.rect(0,30,W,1.5,'F');
+      doc.setTextColor(245,240,232); doc.setFont('helvetica','normal'); doc.setFontSize(16); doc.text('KRUZETA',margin,19);
+      doc.setFontSize(8); doc.setTextColor(180,170,155); doc.setCharSpace(2); doc.text(t('pdf_3d').toUpperCase(),W-margin,19,{align:'right'}); doc.setCharSpace(0);
+      doc.setTextColor(26,26,26); doc.setFontSize(18); doc.setFont('helvetica','bold');
+      doc.text(DESIGNS[currentDesign].name+'  ·  '+fm(floor.w)+' × '+fm(floor.d)+' m',margin,48);
+      const sW=W-margin*2, sH=sW*(1125/1500);
+      doc.addImage(snap,'JPEG',margin,58,sW,sH);
+      doc.setDrawColor(220,215,205); doc.setLineWidth(0.3); doc.rect(margin,58,sW,sH);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(136,136,136);
+      doc.text(t('pdf_3d_note'),margin,58+sH+8);
+      let y2=58+sH+18; doc.setDrawColor(220,215,205); doc.setLineWidth(0.4); doc.line(margin,y2,W-margin,y2);
+      y2+=8; doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(136,136,136); doc.setCharSpace(2);
+      doc.text(t('pdf_colors').toUpperCase(),margin,y2); doc.setCharSpace(0);
+      drawColors(y2+5);
+      drawFooter();
+    }
+    doc.save(`kruzeta-${currentDesign}-${fm(floor.w)}x${fm(floor.d)}m-${new Date().toISOString().slice(0,10)}.pdf`);
   } catch(e){ console.error(e); alert('Error generating PDF.'); }
   document.getElementById('pdfOverlay').classList.remove('show');
+}
+
+/* ══════════════ MEDIDAS DE LA PISTA ══════════════ */
+const PANEL=1.22, MIN_PANELS=2, MAX_PANELS=12;
+// TODO(config): tamaño inicial de la pista en paneles (4×3 = 4.88 × 3.66 m)
+let floor={w:4,d:3};
+let fitMode='cover', zoomLevel=1, showSeams=false, viewMode='top';
+function fm(n){ return (n*PANEL).toFixed(2); }
+function floorW(){ return floor.w*PANEL; }
+function floorD(){ return floor.d*PANEL; }
+function floorAspect(){ return floor.w/floor.d; }
+function floorArea(){ return (floorW()*floorD()).toFixed(2); }
+
+function buildDimSelects(){
+  ['dimW','dimD'].forEach((id,k)=>{
+    const sel=document.getElementById(id); sel.innerHTML='';
+    for(let i=MIN_PANELS;i<=MAX_PANELS;i++){ const o=document.createElement('option'); o.value=i; o.textContent=fm(i)+' m'; sel.appendChild(o); }
+    sel.value=k===0?floor.w:floor.d;
+  });
+}
+function setDims(which){
+  const sw=document.getElementById('dimW'), sd=document.getElementById('dimD');
+  let w=+sw.value, d=+sd.value;
+  if(w===MIN_PANELS&&d===MIN_PANELS){ if(which==='w') d=MIN_PANELS+1; else w=MIN_PANELS+1; sw.value=w; sd.value=d; }
+  floor={w,d}; afterFloorChange();
+}
+function afterFloorChange(){
+  updateDimInfo(); layoutFloor(); renderMain();
+  if(three){ buildFloorMesh(); }
+  updateLabel();
+}
+function updateDimInfo(){
+  const el=document.getElementById('dimInfo'); if(!el) return;
+  el.textContent=fm(floor.w)+' × '+fm(floor.d)+' m  ·  '+floorArea()+' m²  ·  '+(floor.w*floor.d)+' '+t('panels');
+}
+function setFit(m){
+  fitMode=m;
+  document.getElementById('fitCover').classList.toggle('active',m==='cover');
+  document.getElementById('fitStretch').classList.toggle('active',m==='stretch');
+  renderMain();
+}
+function setZoom(v){ zoomLevel=(+v)/100; document.getElementById('zoomVal').textContent=v+'%'; renderMain(); }
+function toggleSeams(on){ showSeams=!!on; renderMain(); }
+function updateLabel(){
+  const el=document.getElementById('canvasLabel'); if(!el) return;
+  el.textContent = viewMode==='3d' ? t('preview3d') : t('preview')+'  ·  '+fm(floor.w)+' × '+fm(floor.d)+' m';
+}
+function layoutFloor(){
+  const main=document.querySelector('.main'), fc=document.getElementById('floorContainer');
+  if(!main||!fc) return;
+  const cs=getComputedStyle(main);
+  const availW=main.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+  const availH=main.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-76;
+  let w,h;
+  if(viewMode==='3d'){
+    w=Math.min(availW,820); h=Math.min(Math.max(availH,220),w*0.72);
+    if(w>h/0.5) w=h/0.5;
+  } else {
+    const a=floorAspect(); w=Math.min(availW,560); h=w/a;
+    if(h>availH){ h=Math.max(availH,120); w=h*a; }
+  }
+  fc.style.width=Math.round(w)+'px'; fc.style.height=Math.round(h)+'px';
+  if(three) resizeThree();
+}
+function setView(m){
+  if(m==='3d'&&!ensureThree()){ alert(t('threeMissing')); return; }
+  viewMode=m;
+  document.getElementById('viewTop').classList.toggle('active',m==='top');
+  document.getElementById('view3d').classList.toggle('active',m==='3d');
+  document.getElementById('floorContainer').classList.toggle('mode-3d',m==='3d');
+  layoutFloor(); updateLabel();
+}
+
+/* ══════════════ VISTA 3D (Three.js) ══════════════ */
+let three=null;
+function ensureThree(){ if(three) return true; if(!window.THREE) return false; try{ initThree(); return true; }catch(e){ console.error(e); return false; } }
+function initThree(){
+  const wrap=document.getElementById('threeWrap');
+  const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  wrap.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x101010);
+  scene.fog=new THREE.Fog(0x101010,22,60);
+  const camera=new THREE.PerspectiveCamera(36,1,0.1,200);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:0x151412,roughness:0.95,metalness:0}));
+  ground.rotation.x=-Math.PI/2; ground.position.y=-0.002; ground.receiveShadow=true; scene.add(ground);
+  scene.add(new THREE.HemisphereLight(0xfff4e2,0x1a1a1a,0.55));
+  const key=new THREE.DirectionalLight(0xfff1d8,0.75); key.position.set(7,12,5); key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048); const sc=key.shadow.camera; sc.left=-14; sc.right=14; sc.top=14; sc.bottom=-14; sc.near=1; sc.far=50; key.shadow.bias=-0.0006; key.shadow.radius=4;
+  scene.add(key);
+  const fill=new THREE.DirectionalLight(0xc9a84c,0.22); fill.position.set(-8,5,-6); scene.add(fill);
+  const spot=new THREE.SpotLight(0xffe6bd,0.35,60,Math.PI/4.5,0.7,1); spot.position.set(0,11,0); scene.add(spot);
+  const texture=new THREE.CanvasTexture(document.getElementById('mainCanvas'));
+  texture.encoding=THREE.sRGBEncoding;
+  texture.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  three={renderer,scene,camera,texture,floorMesh:null,theta:0.55,phi:1.02,radius:10,auto:true,lastT:0};
+  buildFloorMesh();
+  setupOrbit(renderer.domElement);
+  resizeThree();
+  requestAnimationFrame(animateThree);
+}
+function buildFloorMesh(){
+  const T=three; if(!T) return;
+  if(T.floorMesh){ T.scene.remove(T.floorMesh); T.floorMesh.geometry.dispose(); }
+  const w=floorW(), d=floorD(), th=0.06;
+  const geo=new THREE.BoxGeometry(w,th,d);
+  const side=new THREE.MeshStandardMaterial({color:0x3a3a3a,roughness:0.45,metalness:0.7});
+  const top=new THREE.MeshStandardMaterial({map:T.texture,roughness:0.55,metalness:0.02});
+  const mesh=new THREE.Mesh(geo,[side,side,top,side,side,side]);
+  mesh.position.y=th/2; mesh.castShadow=true;
+  T.scene.add(mesh); T.floorMesh=mesh;
+  T.radius=Math.max(w,d)*1.45+2.5;
+  T.texture.needsUpdate=true;
+}
+function resizeThree(){
+  const T=three; if(!T) return;
+  const wrap=document.getElementById('threeWrap');
+  const w=wrap.clientWidth||600, h=wrap.clientHeight||400;
+  T.renderer.setSize(w,h,false); T.camera.aspect=w/h; T.camera.updateProjectionMatrix();
+}
+function placeCamera(){
+  const T=three; const r=T.radius, p=T.phi, th=T.theta;
+  T.camera.position.set(r*Math.sin(p)*Math.sin(th), r*Math.cos(p), r*Math.sin(p)*Math.cos(th));
+  T.camera.lookAt(0,0,0);
+}
+function animateThree(ts){
+  requestAnimationFrame(animateThree);
+  const T=three; if(!T||viewMode!=='3d') return;
+  const dt=Math.min(0.05,(ts-(T.lastT||ts))/1000); T.lastT=ts;
+  if(T.auto) T.theta+=dt*0.12;
+  placeCamera(); T.renderer.render(T.scene,T.camera);
+}
+function setupOrbit(el){
+  const T=three; let dragging=false, lx=0, ly=0, pinch=0;
+  const clampPhi=v=>Math.min(1.42,Math.max(0.18,v));
+  const clampR=v=>Math.min(45,Math.max(2.5,v));
+  el.addEventListener('pointerdown',e=>{ dragging=true; T.auto=false; lx=e.clientX; ly=e.clientY; el.setPointerCapture(e.pointerId); });
+  el.addEventListener('pointermove',e=>{ if(!dragging) return; T.theta-=(e.clientX-lx)*0.006; T.phi=clampPhi(T.phi-(e.clientY-ly)*0.006); lx=e.clientX; ly=e.clientY; });
+  const stop=()=>{ dragging=false; };
+  el.addEventListener('pointerup',stop); el.addEventListener('pointercancel',stop); el.addEventListener('pointerleave',stop);
+  el.addEventListener('wheel',e=>{ e.preventDefault(); T.auto=false; T.radius=clampR(T.radius*(1+Math.sign(e.deltaY)*0.08)); },{passive:false});
+  el.addEventListener('touchstart',e=>{ if(e.touches.length===2){ pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); } },{passive:true});
+  el.addEventListener('touchmove',e=>{ if(e.touches.length===2&&pinch){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); T.radius=clampR(T.radius*(pinch/d)); pinch=d; } },{passive:true});
+  el.addEventListener('dblclick',()=>{ T.theta=0.55; T.phi=1.02; T.radius=Math.max(floorW(),floorD())*1.45+2.5; T.auto=true; });
+}
+function snapshot3D(w,h){
+  if(!ensureThree()) return null;
+  const T=three;
+  const saved={theta:T.theta,phi:T.phi,radius:T.radius};
+  T.theta=0.62; T.phi=1.0; T.radius=Math.max(floorW(),floorD())*1.4+2.2;
+  T.renderer.setSize(w,h,false); T.camera.aspect=w/h; T.camera.updateProjectionMatrix();
+  T.texture.needsUpdate=true; placeCamera(); T.renderer.render(T.scene,T.camera);
+  const url=T.renderer.domElement.toDataURL('image/jpeg',0.9);
+  Object.assign(T,saved); resizeThree(); placeCamera();
+  return url;
 }
 
 loadAllImages();
