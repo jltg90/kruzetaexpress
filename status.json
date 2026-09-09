@@ -6,10 +6,11 @@
   "industria": "Eventos",
   "tipo_solucion": "Web App",
   "descripcion_corta": "Configurador visual de pistas de baile para bodas y eventos: elige diseño, colores y medidas, y exporta la propuesta a PDF. Sitio de una sola página, bilingüe (ES/EN).",
-  "estado_general": "entregado",
+  "estado_general": "en_revision",
   "urls": {
     "produccion": "https://jltg90.github.io/kruzetaexpress/",
-    "repo": "https://github.com/jltg90/kruzetaexpress"
+    "repo": "https://github.com/jltg90/kruzetaexpress",
+    "preview": "https://raw.githack.com/jltg90/kruzetaexpress/feature/3d-medidas/index.html"
   },
   "modulos": {
     "auth_login": "no_aplica",
@@ -28,7 +29,7 @@
   },
   "publico_en_portafolio": true,
   "screenshot": "/screenshots/kruzetaexpress.png",
-  "ultima_sesion": "2026-07-23",
-  "siguiente_paso": "Confirmar responsive móvil. Migrado a git + GitHub el 2026-07-23: se agregó .gitignore que no existía; el repo ya vivía en GitHub (subido vía 'Add files via upload' en marzo 2026), ahora también clonado en C:\\dev\\kruzetaexpress.",
-  "notas": "Sitio estático de una sola página (HTML/CSS/JS vanilla), sin backend. Export a PDF vía jsPDF. Desplegado en GitHub Pages (jltg90.github.io/kruzetaexpress), no en Vercel. Sin código fuente adicional fuera del repo — el repo de GitHub es la única fuente conocida."
+  "ultima_sesion": "2026-09-09",
+  "siguiente_paso": "Revisar la rama feature/3d-medidas (español por defecto, medidas en múltiplos de 1.22 m, vista 3D, PDF con colores/medidas y página 3D). Si se aprueba, hacer merge a main para publicar en GitHub Pages. Pendiente de confirmar responsive móvil.",
+  "notas": "Sitio estático de una sola página (HTML/CSS/JS vanilla), sin backend. Export a PDF vía jsPDF; vista 3D vía Three.js r128 (cdnjs). Desplegado en GitHub Pages (jltg90.github.io/kruzetaexpress) desde la rama main, no en Vercel. El index.html pesa 17 MB por las máscaras PNG embebidas en base64 y usa CRLF. Cambios 2026-09-09 en rama feature/3d-medidas, sin merge a main hasta aprobación."
 }
