@@ -46,8 +46,6 @@
   .dim-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .dim-grid label { display:flex; flex-direction:column; gap:5px; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--mid); }
   .dim-grid select { font-family:'Montserrat',sans-serif; font-size:12px; padding:8px 10px; border:1px solid var(--border); border-radius:4px; background:#fff; color:var(--charcoal); width:100%; }
-  .dim-info { font-size:11px; color:var(--charcoal); margin-top:10px; letter-spacing:0.03em; }
-  .dim-hint { font-size:9.5px; color:var(--mid); margin-top:3px; font-weight:300; }
   .fit-row { display:flex; align-items:center; justify-content:space-between; margin-top:14px; gap:8px; }
   .fit-label { font-size:10px; color:var(--mid); letter-spacing:0.05em; white-space:nowrap; }
   .seg { display:flex; border:1px solid var(--border); border-radius:14px; padding:2px; }
@@ -55,8 +53,6 @@
   .seg-btn.active { background:var(--charcoal); color:var(--cream); }
   .zoom-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
   .zoom-row input[type=range] { flex:1; accent-color:var(--charcoal); }
-  .chk { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:10px; color:var(--mid); cursor:pointer; }
-  .chk input { accent-color:var(--charcoal); }
   #mainCanvas { width:100%; height:100%; display:block; border-radius:2px; box-shadow:0 40px 120px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.04); }
   .canvas-label { position:absolute; bottom:-26px; left:50%; transform:translateX(-50%); font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.2); white-space:nowrap; }
   #transitionOverlay { position:absolute; inset:0; background:#111; pointer-events:none; opacity:0; transition:opacity 0.25s; border-radius:2px; }
@@ -249,8 +245,6 @@
         <label><span data-i18n="width">Ancho</span><select id="dimW" onchange="setDims('w')"></select></label>
         <label><span data-i18n="depth">Largo</span><select id="dimD" onchange="setDims('d')"></select></label>
       </div>
-      <div class="dim-info" id="dimInfo"></div>
-      <div class="dim-hint" data-i18n="dimHint">Múltiplos de 1.22 m · mínimo 2.44 × 3.66 m</div>
       <div class="fit-row">
         <span class="fit-label" data-i18n="fit">Ajuste del diseño</span>
         <div class="seg">
@@ -262,7 +256,6 @@
         <span class="fit-label"><span data-i18n="zoom">Zoom</span> <span id="zoomVal">100%</span></span>
         <input type="range" id="zoomRange" min="100" max="250" value="100" oninput="setZoom(this.value)">
       </div>
-      <label class="chk"><input type="checkbox" id="showSeams" onchange="toggleSeams(this.checked)"><span data-i18n="seams">Mostrar paneles (1.22 m)</span></label>
     </div>
     <div class="panel-section">
       <div class="section-title" data-i18n="colorZones">Color Zones</div>
@@ -318,9 +311,7 @@ const T = {
     viewTop:'Top view', view3d:'3D view',
     preview3d:'3D Preview — drag to rotate · scroll to zoom',
     dimensions:'Floor size', width:'Width', depth:'Length',
-    dimHint:'Multiples of 1.22 m · minimum 2.44 × 3.66 m',
     fit:'Design fit', fitCover:'Cover', fitStretch:'Stretch', zoom:'Zoom',
-    seams:'Show panels (1.22 m)', panels:'panels',
     pdf_size:'Floor Size', pdf_panels:'panels of 1.22 × 1.22 m', pdf_fit_cover:'Design fit: cover (cropped)', pdf_fit_stretch:'Design fit: stretched',
     pdf_3d:'3D View', pdf_3d_note:'Illustrative render. Colors may vary slightly on the printed floor.',
     threeMissing:'The 3D view could not be loaded. Check your internet connection.',
@@ -353,9 +344,7 @@ const T = {
     viewTop:'Vista superior', view3d:'Vista 3D',
     preview3d:'Vista 3D — arrastra para girar · rueda para acercar',
     dimensions:'Medidas de la pista', width:'Ancho', depth:'Largo',
-    dimHint:'Múltiplos de 1.22 m · mínimo 2.44 × 3.66 m',
     fit:'Ajuste del diseño', fitCover:'Cubrir', fitStretch:'Estirar', zoom:'Zoom',
-    seams:'Mostrar paneles (1.22 m)', panels:'paneles',
     pdf_size:'Medidas de la Pista', pdf_panels:'paneles de 1.22 × 1.22 m', pdf_fit_cover:'Ajuste del diseño: cubrir (recortado)', pdf_fit_stretch:'Ajuste del diseño: estirado',
     pdf_3d:'Vista 3D', pdf_3d_note:'Render ilustrativo. Los colores pueden variar ligeramente en la pista impresa.',
     threeMissing:'No se pudo cargar la vista 3D. Revisa tu conexión a internet.',
@@ -371,7 +360,7 @@ function setLang(l) {
   document.documentElement.lang=l;
   document.title = l==='en' ? 'Kruzeta — Dance Floor Configurator' : 'Kruzeta — Configurador de Pista de Baile';
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.getAttribute('data-i18n')); });
-  buildUI(); buildPalettes(); updateDimInfo(); updateLabel();
+  buildUI(); buildPalettes(); updateLabel();
 }
 
 const MASKS = {
@@ -576,13 +565,6 @@ function renderToCanvas(canvas,design,dc,size,opts) {
     }
     cctx.putImageData(imgData,0,0); ctx.drawImage(cc,0,0);
   });
-  if(opts.seams && opts.panels){
-    const {w:pw,d:pd}=opts.panels;
-    ctx.save(); ctx.lineWidth=Math.max(1,w/700);
-    for(let i=1;i<pw;i++){ const x=Math.round(i/pw*w)+0.5; ctx.strokeStyle='rgba(0,0,0,0.22)'; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.beginPath(); ctx.moveTo(x+ctx.lineWidth,0); ctx.lineTo(x+ctx.lineWidth,h); ctx.stroke(); }
-    for(let j=1;j<pd;j++){ const y=Math.round(j/pd*h)+0.5; ctx.strokeStyle='rgba(0,0,0,0.22)'; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); ctx.strokeStyle='rgba(255,255,255,0.12)'; ctx.beginPath(); ctx.moveTo(0,y+ctx.lineWidth); ctx.lineTo(w,y+ctx.lineWidth); ctx.stroke(); }
-    ctx.restore();
-  }
   if(size>100){
     const v=ctx.createRadialGradient(w/2,h/2,Math.max(w,h)*0.3,w/2,h/2,Math.max(w,h)*0.75);
     v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,0.15)');
@@ -590,7 +572,7 @@ function renderToCanvas(canvas,design,dc,size,opts) {
   }
 }
 
-function renderOpts(){ return {aspect:floorAspect(),fit:fitMode,zoom:zoomLevel,seams:showSeams,panels:{w:floor.w,d:floor.d}}; }
+function renderOpts(){ return {aspect:floorAspect(),fit:fitMode,zoom:zoomLevel}; }
 function renderMain(){
   const c=document.getElementById('mainCanvas');
   const MAX=1024, a=floorAspect();
@@ -770,7 +752,7 @@ async function exportPDF() {
 const PANEL=1.22, MIN_PANELS=2, MAX_PANELS=12;
 // TODO(config): tamaño inicial de la pista en paneles (4×3 = 4.88 × 3.66 m)
 let floor={w:4,d:3};
-let fitMode='cover', zoomLevel=1, showSeams=false, viewMode='top';
+let fitMode='cover', zoomLevel=1, viewMode='top';
 function fm(n){ return (n*PANEL).toFixed(2); }
 function floorW(){ return floor.w*PANEL; }
 function floorD(){ return floor.d*PANEL; }
@@ -791,13 +773,9 @@ function setDims(which){
   floor={w,d}; afterFloorChange();
 }
 function afterFloorChange(){
-  updateDimInfo(); layoutFloor(); renderMain();
+  layoutFloor(); renderMain();
   if(three){ buildFloorMesh(); }
   updateLabel();
-}
-function updateDimInfo(){
-  const el=document.getElementById('dimInfo'); if(!el) return;
-  el.textContent=fm(floor.w)+' × '+fm(floor.d)+' m  ·  '+floorArea()+' m²  ·  '+(floor.w*floor.d)+' '+t('panels');
 }
 function setFit(m){
   fitMode=m;
@@ -806,7 +784,6 @@ function setFit(m){
   renderMain();
 }
 function setZoom(v){ zoomLevel=(+v)/100; document.getElementById('zoomVal').textContent=v+'%'; renderMain(); }
-function toggleSeams(on){ showSeams=!!on; renderMain(); }
 function updateLabel(){
   const el=document.getElementById('canvasLabel'); if(!el) return;
   el.textContent = viewMode==='3d' ? t('preview3d') : t('preview')+'  ·  '+fm(floor.w)+' × '+fm(floor.d)+' m';
