@@ -6,7 +6,7 @@
   "industria": "Eventos",
   "tipo_solucion": "Web App",
   "descripcion_corta": "Configurador visual de pistas de baile para bodas y eventos: elige diseño, colores y medidas, y exporta la propuesta a PDF. Sitio de una sola página, bilingüe (ES/EN).",
-  "estado_general": "en_revision",
+  "estado_general": "entregado",
   "urls": {
     "produccion": "https://jltg90.github.io/kruzetaexpress/",
     "repo": "https://github.com/jltg90/kruzetaexpress",
@@ -20,7 +20,7 @@
     "notificaciones": "no_aplica",
     "pagos": "no_aplica",
     "reportes": "completado",
-    "responsive_movil": "pendiente",
+    "responsive_movil": "completado",
     "roles_permisos": "no_aplica",
     "seguridad": "no_aplica",
     "seo": "no_aplica",
@@ -29,7 +29,7 @@
   },
   "publico_en_portafolio": true,
   "screenshot": "/screenshots/kruzetaexpress.png",
-  "ultima_sesion": "2026-09-09",
-  "siguiente_paso": "Revisar la rama feature/3d-medidas (español por defecto, medidas en múltiplos de 1.22 m, vista 3D, PDF con colores/medidas y página 3D). Si se aprueba, hacer merge a main para publicar en GitHub Pages. Pendiente de confirmar responsive móvil.",
-  "notas": "Sitio estático de una sola página (HTML/CSS/JS vanilla), sin backend. Export a PDF vía jsPDF; vista 3D vía Three.js r128 (cdnjs). Desplegado en GitHub Pages (jltg90.github.io/kruzetaexpress) desde la rama main, no en Vercel. El index.html pesa 17 MB por las máscaras PNG embebidas en base64 y usa CRLF. Cambios 2026-09-09 en rama feature/3d-medidas, sin merge a main hasta aprobación. Preview de la rama en proyecto Vercel aparte kruzetaexpress-preview (desplegado desde carpeta temporal con solo index.html; no es la producción del cliente). Respaldo: https://raw.githack.com/jltg90/kruzetaexpress/feature/3d-medidas/index.html (muestra un aviso intermedio)."
+  "ultima_sesion": "2026-10-14",
+  "siguiente_paso": "Confirmar con el cliente la nueva versión en producción (rediseño móvil, galería de diseños en cuadrícula, pasos 1–4). Pendiente opcional: bajar el peso de la página (17 MB) sacando las máscaras base64 a archivos aparte para que cargue más rápido en celular.",
+  "notas": "Sitio estático de una sola página (HTML/CSS/JS vanilla), sin backend. Export a PDF vía jsPDF; vista 3D vía Three.js r128 (cdnjs). Desplegado en GitHub Pages (jltg90.github.io/kruzetaexpress) desde la rama main, no en Vercel. El index.html pesa 17 MB por las máscaras PNG embebidas en base64 y usa CRLF. Cambios 2026-09-09 (rama feature/3d-medidas) y rediseño móvil 2026-10-14 publicados en main el 2026-10-14 a pedido del dueño. Preview de la rama en proyecto Vercel aparte kruzetaexpress-preview (desplegado desde carpeta temporal con solo index.html; no es la producción del cliente). Respaldo: https://raw.githack.com/jltg90/kruzetaexpress/feature/3d-medidas/index.html (muestra un aviso intermedio)."
 }

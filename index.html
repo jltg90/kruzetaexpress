@@ -8,160 +8,190 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --cream:#f5f0e8; --charcoal:#1a1a1a; --gold:#c9a84c; --mid:#888; --panel-bg:rgba(250,247,242,0.97); --border:rgba(0,0,0,0.08); }
-  body { font-family:'Montserrat',sans-serif; background:var(--charcoal); color:var(--charcoal); min-height:100vh; display:flex; flex-direction:column; }
-  header { background:var(--charcoal); color:var(--cream); display:flex; align-items:center; justify-content:space-between; padding:18px 40px; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; }
-  .header-left { display:flex; align-items:center; gap:24px; }
-  .logo { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; letter-spacing:0.12em; text-transform:uppercase; }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --ink:#121110; --ink-2:#1a1917; --stage:#0f0e0d;
+    --cream:#f5f0e8; --paper:#faf7f2; --charcoal:#1a1a1a;
+    --gold:#c9a84c; --gold-2:#e2c77e;
+    --on-dark:rgba(245,240,232,0.92); --on-dark-2:rgba(245,240,232,0.62); --on-dark-3:rgba(245,240,232,0.4);
+    --line-dark:rgba(255,255,255,0.08);
+    --mid:#77716a; --border:rgba(26,26,26,0.1); --panel-bg:#faf7f2;
+    --serif:'Cormorant Garamond',Georgia,serif; --sans:'Montserrat',system-ui,sans-serif;
+  }
+  html { -webkit-text-size-adjust:100%; }
+  body { font-family:var(--sans); background:var(--ink); color:var(--charcoal); min-height:100vh; display:flex; flex-direction:column; -webkit-font-smoothing:antialiased; }
+  button { font-family:inherit; color:inherit; -webkit-tap-highlight-color:transparent; }
+  button:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+
+  /* ── Encabezado ── */
+  header { background:var(--ink); color:var(--cream); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 28px; border-bottom:1px solid var(--line-dark); flex-shrink:0; }
+  .brand { display:flex; align-items:baseline; gap:22px; min-width:0; }
+  .logo { font-family:var(--serif); font-size:22px; font-weight:300; letter-spacing:0.14em; text-transform:uppercase; white-space:nowrap; }
   .logo span { color:var(--gold); }
-  .tagline { font-size:10px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.35); font-weight:300; }
-  .lang-toggle { display:flex; align-items:center; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:5px 6px; }
-  .lang-btn { background:none; border:none; cursor:pointer; font-family:'Montserrat',sans-serif; font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.35); padding:4px 10px; border-radius:14px; transition:all 0.2s; }
-  .lang-btn.active { background:var(--gold); color:var(--charcoal); }
-  .app { display:flex; flex:1; min-height:0; }
-  .sidebar { width:210px; background:var(--charcoal); flex-shrink:0; padding:28px 0; border-right:1px solid rgba(255,255,255,0.07); display:flex; flex-direction:column; gap:2px; overflow-y:auto; }
-  .sidebar-label { font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:rgba(255,255,255,0.3); padding:0 22px 14px; font-weight:500; }
-  .design-btn { background:none; border:none; cursor:pointer; padding:11px 22px; display:flex; align-items:center; gap:12px; transition:background 0.2s; position:relative; width:100%; }
-  .design-btn:hover { background:rgba(255,255,255,0.04); }
-  .design-btn.active { background:rgba(255,255,255,0.07); }
-  .design-btn.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--gold); }
-  .design-thumb { width:44px; height:44px; border-radius:4px; overflow:hidden; flex-shrink:0; border:1px solid rgba(255,255,255,0.1); }
-  .design-thumb canvas { width:100%; height:100%; display:block; }
-  .design-info { text-align:left; }
-  .design-name { font-family:'Cormorant Garamond',serif; font-size:15px; color:var(--cream); font-weight:300; letter-spacing:0.05em; display:block; }
-  .design-sub { font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:0.1em; font-family:'Courier New',monospace; display:block; margin-top:2px; }
-  .main { flex:1; display:flex; align-items:center; justify-content:center; background:#111; position:relative; overflow:hidden; padding:36px; }
-  .main::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 30%,rgba(201,168,76,0.04) 0%,transparent 70%); pointer-events:none; }
-  .floor-container { position:relative; width:100%; }
-  #threeWrap { display:none; width:100%; height:100%; border-radius:4px; overflow:hidden; box-shadow:0 40px 120px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.04); cursor:grab; touch-action:none; }
+  .tagline { font-size:10px; letter-spacing:0.28em; text-transform:uppercase; color:var(--on-dark-3); font-weight:400; white-space:nowrap; }
+  .lang-toggle { display:flex; align-items:center; background:rgba(255,255,255,0.06); border:1px solid var(--line-dark); border-radius:999px; padding:3px; flex-shrink:0; }
+  .lang-btn { background:none; border:none; cursor:pointer; font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--on-dark-3); padding:7px 12px; border-radius:999px; transition:all 0.2s; }
+  .lang-btn.active { background:var(--gold); color:var(--ink); }
+
+  /* ── Distribución (escritorio) ── */
+  .app { flex:1; min-height:0; display:grid; grid-template-columns:288px minmax(0,1fr) 340px; }
+  @media (min-width:961px) {
+    body { height:100vh; overflow:hidden; }
+    .gallery, .panel { overflow-y:auto; }
+  }
+
+  /* ── Pasos numerados ── */
+  .step-head { display:flex; gap:12px; align-items:flex-start; margin-bottom:16px; }
+  .step-num { flex:0 0 26px; height:26px; border-radius:50%; border:1px solid var(--gold); color:#a8862f; font-size:11px; font-weight:500; display:grid; place-items:center; margin-top:1px; }
+  .gallery .step-num { color:var(--gold); }
+  .step-title { font-family:var(--serif); font-size:22px; font-weight:400; line-height:1.1; color:var(--charcoal); }
+  .step-hint { font-size:11px; line-height:1.5; margin-top:4px; color:var(--mid); font-weight:300; }
+  .gallery .step-title { color:var(--cream); }
+  .gallery .step-hint { color:var(--on-dark-3); }
+
+  /* ── Galería de diseños ── */
+  .gallery { background:var(--ink-2); border-right:1px solid var(--line-dark); padding:22px 18px 28px; }
+  .design-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px 12px; }
+  .design-card { background:none; border:0; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:7px; padding:0; min-width:0; }
+  .dc-thumb { position:relative; display:block; aspect-ratio:1; border-radius:8px; overflow:hidden; box-shadow:0 0 0 1px var(--line-dark); transition:box-shadow 0.2s, transform 0.2s; }
+  .dc-thumb canvas { width:100%; height:100%; display:block; }
+  .design-card:hover .dc-thumb { transform:translateY(-2px); box-shadow:0 0 0 1px rgba(255,255,255,0.25), 0 10px 24px rgba(0,0,0,0.45); }
+  .design-card.active .dc-thumb { box-shadow:0 0 0 2px var(--gold), 0 10px 28px rgba(0,0,0,0.5); transform:none; }
+  .dc-check { position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%; background:var(--gold); color:var(--ink); font-size:12px; font-weight:500; display:grid; place-items:center; opacity:0; transform:scale(0.6); transition:all 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.3); }
+  .design-card.active .dc-check { opacity:1; transform:none; }
+  .dc-name { font-family:var(--serif); font-size:17px; color:var(--on-dark); line-height:1; padding-left:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .design-card.active .dc-name { color:var(--gold-2); }
+  .dc-meta { font-size:9.5px; letter-spacing:0.08em; color:var(--on-dark-3); padding-left:2px; margin-top:-3px; }
+
+  /* ── Escenario (vista previa) ── */
+  .stage { position:relative; background:radial-gradient(ellipse at 50% 40%,#1e1c19 0%,var(--stage) 72%); display:flex; align-items:center; justify-content:center; padding:28px 40px; overflow:hidden; min-width:0; }
+  .stage-inner { display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .stage-bar { display:flex; align-items:center; justify-content:center; gap:12px; }
+  .stage-name { display:none; font-family:var(--serif); font-size:20px; color:var(--cream); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .view-toggle { display:flex; gap:2px; background:rgba(255,255,255,0.05); border:1px solid var(--line-dark); border-radius:999px; padding:3px; flex-shrink:0; }
+  .view-btn { background:none; border:none; cursor:pointer; font-size:10px; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; color:var(--on-dark-2); padding:8px 16px; border-radius:999px; transition:all 0.2s; white-space:nowrap; }
+  .view-btn:hover { color:var(--cream); }
+  .view-btn.active { background:var(--gold); color:var(--ink); }
+  .floor-container { position:relative; margin:26px 28px 0; }
+  .floor-container.mode-3d { margin:0; }
+  #mainCanvas { width:100%; height:100%; display:block; border-radius:3px; box-shadow:0 30px 90px rgba(0,0,0,0.75),0 0 0 1px rgba(255,255,255,0.05); }
+  #threeWrap { display:none; width:100%; height:100%; border-radius:10px; overflow:hidden; box-shadow:0 30px 90px rgba(0,0,0,0.75),0 0 0 1px rgba(255,255,255,0.05); cursor:grab; touch-action:none; }
   #threeWrap:active { cursor:grabbing; }
   #threeWrap canvas { display:block; width:100% !important; height:100% !important; }
   .floor-container.mode-3d #threeWrap { display:block; }
   .floor-container.mode-3d #mainCanvas { display:none; }
-  .view-toggle { position:absolute; top:-38px; left:50%; transform:translateX(-50%); display:flex; gap:2px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:3px; z-index:2; }
-  .view-btn { background:none; border:none; cursor:pointer; font-family:'Montserrat',sans-serif; font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); padding:5px 12px; border-radius:14px; transition:all 0.2s; white-space:nowrap; }
-  .view-btn:hover { color:rgba(255,255,255,0.7); }
-  .view-btn.active { background:var(--gold); color:var(--charcoal); }
-  .dim-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .dim-grid label { display:flex; flex-direction:column; gap:5px; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--mid); }
-  .dim-grid select { font-family:'Montserrat',sans-serif; font-size:12px; padding:8px 10px; border:1px solid var(--border); border-radius:4px; background:#fff; color:var(--charcoal); width:100%; }
-  .fit-row { display:flex; align-items:center; justify-content:space-between; margin-top:14px; gap:8px; }
-  .fit-label { font-size:10px; color:var(--mid); letter-spacing:0.05em; white-space:nowrap; }
-  .seg { display:flex; border:1px solid var(--border); border-radius:14px; padding:2px; }
-  .seg-btn { background:none; border:none; cursor:pointer; font-family:'Montserrat',sans-serif; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--mid); padding:4px 10px; border-radius:12px; transition:all 0.15s; }
-  .seg-btn.active { background:var(--charcoal); color:var(--cream); }
-  .zoom-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
-  .zoom-row input[type=range] { flex:1; accent-color:var(--charcoal); }
-  #mainCanvas { width:100%; height:100%; display:block; border-radius:2px; box-shadow:0 40px 120px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.04); }
-  .canvas-label { position:absolute; bottom:-26px; left:50%; transform:translateX(-50%); font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.2); white-space:nowrap; }
-  #transitionOverlay { position:absolute; inset:0; background:#111; pointer-events:none; opacity:0; transition:opacity 0.25s; border-radius:2px; }
+  .floor-container.mode-3d .dim-mark { display:none; }
+  /* Cotas de ancho y largo alrededor de la pista */
+  .dim-mark { position:absolute; display:flex; align-items:center; gap:8px; color:var(--on-dark-2); font-size:10px; letter-spacing:0.12em; font-variant-numeric:tabular-nums; pointer-events:none; white-space:nowrap; }
+  .dim-mark::before, .dim-mark::after { content:''; flex:1; background:rgba(201,168,76,0.45); }
+  .dim-w { left:0; right:0; top:-24px; height:12px; border-left:1px solid rgba(201,168,76,0.45); border-right:1px solid rgba(201,168,76,0.45); }
+  .dim-w::before, .dim-w::after { height:1px; }
+  .dim-d { top:0; bottom:0; right:-26px; width:12px; flex-direction:column; border-top:1px solid rgba(201,168,76,0.45); border-bottom:1px solid rgba(201,168,76,0.45); }
+  .dim-d::before, .dim-d::after { width:1px; }
+  .dim-d span { writing-mode:vertical-rl; }
+  .canvas-label { font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:var(--on-dark-3); text-align:center; }
+  #transitionOverlay { position:absolute; inset:0; background:var(--stage); pointer-events:none; opacity:0; transition:opacity 0.22s; border-radius:3px; }
   #transitionOverlay.show { opacity:1; }
-  .panel { width:272px; background:var(--panel-bg); flex-shrink:0; display:flex; flex-direction:column; border-left:1px solid var(--border); overflow-y:auto; }
-  .panel-section { padding:20px 22px; border-bottom:1px solid var(--border); }
-  .panel-section:last-child { border-bottom:none; }
-  .section-title { font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:var(--mid); font-weight:500; margin-bottom:14px; }
-  .active-design-name { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:300; color:var(--charcoal); line-height:1; margin-bottom:6px; }
-  .active-design-desc { font-size:11px; color:var(--mid); line-height:1.6; font-weight:300; }
-  .color-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); }
-  .color-row:last-child { border-bottom:none; }
-  .color-row-left { display:flex; align-items:center; gap:11px; }
-  .color-zone-indicator { width:7px; height:26px; border-radius:2px; flex-shrink:0; }
-  .color-row-label { font-size:11px; color:var(--charcoal); font-weight:400; letter-spacing:0.04em; }
-  .color-row-hex { font-size:10px; color:var(--mid); font-family:'Courier New',monospace; margin-top:1px; }
-  .color-swatch-wrapper { position:relative; width:30px; height:30px; border-radius:50%; overflow:hidden; border:2px solid rgba(0,0,0,0.08); cursor:pointer; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.12); transition:transform 0.15s; }
-  .color-swatch-wrapper:hover { transform:scale(1.1); }
-  .color-swatch-wrapper input[type=color] { position:absolute; inset:-8px; width:calc(100% + 16px); height:calc(100% + 16px); opacity:0; cursor:pointer; border:none; padding:0; }
-  .color-swatch-display { position:absolute; inset:0; border-radius:50%; pointer-events:none; }
-  .palette-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-top:4px; }
-  .palette-item { cursor:pointer; border-radius:5px; overflow:hidden; border:2px solid transparent; transition:border-color 0.15s,transform 0.15s; aspect-ratio:1; }
-  .palette-item:hover { transform:scale(1.05); }
-  .palette-item.active { border-color:var(--charcoal); }
-  .palette-item canvas { width:100%; height:100%; display:block; }
-  .action-buttons { display:flex; flex-direction:column; gap:8px; margin-top:14px; }
-  .btn-primary { width:100%; padding:11px; border:none; border-radius:4px; font-family:'Montserrat',sans-serif; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; background:var(--charcoal); color:var(--cream); font-weight:500; display:flex; align-items:center; justify-content:center; gap:8px; }
-  .btn-primary:hover { background:#333; }
-  .btn-primary:active { transform:scale(0.98); }
-  .btn-secondary { width:100%; padding:10px; background:none; border:1px solid var(--border); border-radius:4px; font-family:'Montserrat',sans-serif; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--mid); cursor:pointer; transition:all 0.2s; }
-  .btn-secondary:hover { background:var(--charcoal); color:var(--cream); border-color:var(--charcoal); }
-  .loading-screen { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#111; z-index:10; transition:opacity 0.5s; }
 
-  /* ── MOBILE RESPONSIVE ── */
-  @media (max-width: 700px) {
-    /* Header: stack logo and tagline, hide tagline, compact padding */
-    header { padding:12px 16px; flex-wrap:wrap; gap:8px; }
-    .header-left { gap:10px; flex-wrap:wrap; }
-    .logo { font-size:15px; letter-spacing:0.08em; }
-    .tagline { display:none; }
-    .lang-toggle { padding:4px 5px; }
-
-    /* App: stack sidebar above main content */
-    .app { flex-direction:column; }
-
-    /* Sidebar: horizontal scrolling row of design buttons */
-    .sidebar {
-      width:100%;
-      flex-direction:row;
-      overflow-x:auto;
-      overflow-y:hidden;
-      padding:10px 0;
-      gap:0;
-      border-right:none;
-      border-bottom:1px solid rgba(255,255,255,0.07);
-      flex-shrink:0;
-    }
-    .sidebar-label { display:none; }
-    .design-btn {
-      flex-direction:column;
-      align-items:center;
-      padding:8px 10px;
-      gap:5px;
-      min-width:72px;
-      flex-shrink:0;
-    }
-    .design-thumb { width:38px; height:38px; }
-    .design-name { font-size:10px; letter-spacing:0.03em; text-align:center; }
-    .design-sub { font-size:8px; text-align:center; }
-    .design-btn.active::before { left:0; top:auto; bottom:0; right:0; width:100%; height:2px; }
-
-    /* Main canvas area: less padding */
-    .main { padding:16px 12px 48px; min-height:400px; }
-    .canvas-label { white-space:normal; width:100%; text-align:center; bottom:-34px; line-height:1.5; }
-
-    /* Panel: full width below canvas */
-    .panel {
-      width:100%;
-      border-left:none;
-      border-top:1px solid var(--border);
-    }
-    .panel-inner { padding:16px; }
-
-    /* Palette grid: allow more columns on mobile */
-    .palette-grid { grid-template-columns: repeat(4, 1fr); }
-
-    /* Active design name smaller */
-    .active-design-name { font-size:20px; }
-
-    /* Buttons full width already, just reduce padding */
-    .btn-primary { padding:10px; font-size:9px; }
-  }
-
+  /* ── Pantalla de carga ── */
+  .loading-screen { position:fixed; inset:0; display:flex; flex-direction:column; gap:22px; align-items:center; justify-content:center; background:var(--stage); z-index:60; transition:opacity 0.5s; color:var(--cream); text-align:center; padding:24px; }
   .loading-screen.hidden { opacity:0; pointer-events:none; }
-  .loader-text { font-family:'Cormorant Garamond',serif; font-size:18px; color:rgba(255,255,255,0.3); letter-spacing:0.2em; }
-  #pdfOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; }
+  .loader-logo { font-family:var(--serif); font-size:26px; font-weight:300; letter-spacing:0.16em; text-transform:uppercase; }
+  .loader-logo span { color:var(--gold); }
+  .loader-bar { width:160px; height:2px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; position:relative; }
+  .loader-bar::after { content:''; position:absolute; top:0; bottom:0; width:40%; background:var(--gold); animation:slide 1.2s ease-in-out infinite; }
+  @keyframes slide { from { left:-40%; } to { left:100%; } }
+  .loader-text { font-size:10px; letter-spacing:0.28em; text-transform:uppercase; color:var(--on-dark-3); }
+
+  /* ── Panel de opciones ── */
+  .panel { background:var(--paper); border-left:1px solid var(--border); }
+  .panel-section { padding:22px 24px; border-bottom:1px solid var(--border); }
+  .panel-section:last-child { border-bottom:none; }
+  .panel-section.current { background:var(--cream); }
+  .section-kicker { font-size:9.5px; letter-spacing:0.3em; text-transform:uppercase; color:var(--mid); font-weight:500; margin-bottom:8px; }
+  .active-design-name { font-family:var(--serif); font-size:32px; font-weight:400; color:var(--charcoal); line-height:1; margin-bottom:8px; }
+  .active-design-desc { font-size:12px; color:var(--mid); line-height:1.6; font-weight:300; }
+  .palette-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; }
+  .palette-item { cursor:pointer; border-radius:8px; overflow:hidden; border:0; padding:0; aspect-ratio:1; box-shadow:0 0 0 1px var(--border); transition:transform 0.15s; background:none; }
+  .palette-item:hover { transform:scale(1.04); }
+  .palette-item.active { outline:2px solid var(--charcoal); outline-offset:2px; }
+  .palette-item canvas { width:100%; height:100%; display:block; }
+  .sub-title { font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--mid); font-weight:500; margin:22px 0 4px; }
+  .color-row { position:relative; display:flex; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .color-row:last-child { border-bottom:none; }
+  .color-dot { width:34px; height:34px; border-radius:50%; flex-shrink:0; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.14),0 2px 6px rgba(0,0,0,0.1); }
+  .color-row-label { font-size:13px; color:var(--charcoal); letter-spacing:0.02em; }
+  .color-row-hex { font-size:10.5px; color:var(--mid); font-family:'Courier New',monospace; margin-top:2px; }
+  .color-edit { margin-left:auto; font-size:9.5px; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--charcoal); border:1px solid var(--border); background:#fff; border-radius:999px; padding:7px 13px; transition:all 0.15s; }
+  .color-row:hover .color-edit { background:var(--charcoal); color:var(--cream); border-color:var(--charcoal); }
+  .color-row input[type=color] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; border:none; padding:0; }
+  .btn-link { background:none; border:0; color:var(--mid); font-size:11px; letter-spacing:0.06em; margin-top:12px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; padding:4px 0; }
+  .btn-link:hover { color:var(--charcoal); }
+  .dim-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .stepper-label { display:block; font-size:9.5px; letter-spacing:0.2em; text-transform:uppercase; color:var(--mid); font-weight:500; margin-bottom:6px; }
+  .stepper-ctl { display:flex; align-items:center; border:1px solid var(--border); border-radius:10px; background:#fff; height:46px; overflow:hidden; }
+  .stepper-ctl button { width:38px; height:100%; border:0; background:none; font-size:20px; font-weight:300; cursor:pointer; color:var(--charcoal); flex-shrink:0; transition:background 0.15s; }
+  .stepper-ctl button:hover:not(:disabled) { background:rgba(0,0,0,0.04); }
+  .stepper-ctl button:disabled { opacity:0.25; cursor:default; }
+  .stepper-ctl output { flex:1; text-align:center; white-space:nowrap; font-size:14px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .fit-row { display:flex; align-items:center; justify-content:space-between; margin-top:16px; gap:8px; }
+  .fit-label { font-size:11px; color:var(--mid); letter-spacing:0.04em; white-space:nowrap; }
+  .seg { display:flex; border:1px solid var(--border); border-radius:999px; padding:3px; background:#fff; }
+  .seg-btn { background:none; border:none; cursor:pointer; font-size:9.5px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--mid); padding:7px 13px; border-radius:999px; transition:all 0.15s; }
+  .seg-btn.active { background:var(--charcoal); color:var(--cream); }
+  .zoom-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; }
+  .zoom-row input[type=range] { flex:1; accent-color:var(--charcoal); }
+  .btn-primary { width:100%; padding:16px; border:none; border-radius:10px; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; background:var(--gold); color:var(--ink); font-weight:500; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 8px 20px rgba(201,168,76,0.28); }
+  .btn-primary:hover { background:var(--gold-2); }
+  .btn-primary:active { transform:scale(0.98); }
+
+  /* ── Celular y tableta ── */
+  @media (max-width:960px) {
+    header { padding:10px 16px; }
+    .tagline { display:none; }
+    .logo { font-size:16px; letter-spacing:0.1em; }
+    .app { display:flex; flex-direction:column; }
+    /* La vista previa se queda fija arriba para ver cada cambio al momento */
+    .stage { order:1; position:sticky; top:0; z-index:20; padding:10px 16px 14px; box-shadow:0 10px 24px rgba(0,0,0,0.4); }
+    .stage-inner { gap:8px; width:100%; }
+    .stage-bar { width:100%; justify-content:space-between; }
+    .stage-name { display:block; }
+    .view-btn { padding:7px 12px; font-size:9.5px; letter-spacing:0.12em; }
+    .canvas-label { display:none; }
+    .floor-container { margin:22px 26px 0 0; }
+    .gallery { order:2; border-right:0; padding:22px 16px 26px; }
+    .design-grid { grid-template-columns:repeat(4,1fr); gap:14px 8px; }
+    .dc-name { font-size:14px; }
+    .dc-meta { display:none; }
+    .dc-check { width:18px; height:18px; top:4px; right:4px; font-size:10px; }
+    .panel { order:3; border-left:0; }
+    .panel-section { padding:22px 16px; }
+    .active-design-name { font-size:28px; }
+  }
+  @media (min-width:600px) and (max-width:960px) { .design-grid { grid-template-columns:repeat(6,1fr); } }
+  @media (max-width:350px) { .design-grid { grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:960px) and (max-height:600px) { .stage { position:relative; } }
+
+  /* ── Generando PDF ── */
+  #pdfOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:16px; }
   #pdfOverlay.show { display:flex; }
-  .pdf-modal { background:var(--panel-bg); border-radius:8px; padding:36px 40px; text-align:center; }
-  .pdf-modal-title { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; margin-bottom:8px; }
+  .pdf-modal { background:var(--panel-bg); border-radius:12px; padding:36px 40px; text-align:center; }
+  .pdf-modal-title { font-family:var(--serif); font-size:24px; font-weight:400; margin-bottom:8px; }
   .pdf-modal-sub { font-size:11px; color:var(--mid); }
-  .pdf-spinner { width:32px; height:32px; border:2px solid var(--border); border-top-color:var(--charcoal); border-radius:50%; animation:spin 0.7s linear infinite; margin:20px auto 0; }
+  .pdf-spinner { width:32px; height:32px; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; margin:20px auto 0; }
   @keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
+<div class="loading-screen" id="loading">
+  <div class="loader-logo">Kruzeta <span>·</span> Express</div>
+  <div class="loader-bar"></div>
+  <span class="loader-text" data-i18n="loading">Cargando diseños…</span>
+</div>
 <header>
-  <div class="header-left">
-    <div class="logo">Kruzeta <span>·</span> <span id="logoSubtitle">Express Designs</span></div>
-    <div class="tagline" data-i18n="tagline">Dance Floor Configurator</div>
+  <div class="brand">
+    <div class="logo">Kruzeta <span>·</span> <span id="logoSubtitle">Diseños Express</span></div>
+    <div class="tagline" data-i18n="tagline">Configurador de Pista de Baile</div>
   </div>
   <div class="lang-toggle">
     <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
@@ -169,81 +199,70 @@
   </div>
 </header>
 <div class="app">
-  <div class="sidebar">
-    <div class="sidebar-label" data-i18n="designs">Designs</div>
-    <button class="design-btn active" data-design="blurry" onclick="selectDesign('blurry',this)">
-      <div class="design-thumb"><canvas id="thumb-blurry" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Blurry</span><span class="design-sub">01</span></div>
-    </button>
-    <button class="design-btn" data-design="geoda" onclick="selectDesign('geoda',this)">
-      <div class="design-thumb"><canvas id="thumb-geoda" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Geoda</span><span class="design-sub">02</span></div>
-    </button>
-    <button class="design-btn" data-design="landscape" onclick="selectDesign('landscape',this)">
-      <div class="design-thumb"><canvas id="thumb-landscape" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Landscape</span><span class="design-sub">03</span></div>
-    </button>
-    <button class="design-btn" data-design="metallic" onclick="selectDesign('metallic',this)">
-      <div class="design-thumb"><canvas id="thumb-metallic" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Metallic</span><span class="design-sub">04</span></div>
-    </button>
-    <button class="design-btn" data-design="minimalistic" onclick="selectDesign('minimalistic',this)">
-      <div class="design-thumb"><canvas id="thumb-minimalistic" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Minimalistic</span><span class="design-sub">05</span></div>
-    </button>
-    <button class="design-btn" data-design="playful" onclick="selectDesign('playful',this)">
-      <div class="design-thumb"><canvas id="thumb-playful" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Playful</span><span class="design-sub">06</span></div>
-    </button>
-    <button class="design-btn" data-design="shadow" onclick="selectDesign('shadow',this)">
-      <div class="design-thumb"><canvas id="thumb-shadow" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Shadow</span><span class="design-sub">07</span></div>
-    </button>
-    <button class="design-btn" data-design="stars" onclick="selectDesign('stars',this)">
-      <div class="design-thumb"><canvas id="thumb-stars" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Stars</span><span class="design-sub">08</span></div>
-    </button>
-    <button class="design-btn" data-design="strokes" onclick="selectDesign('strokes',this)">
-      <div class="design-thumb"><canvas id="thumb-strokes" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Strokes</span><span class="design-sub">09</span></div>
-    </button>
-    <button class="design-btn" data-design="volcano" onclick="selectDesign('volcano',this)">
-      <div class="design-thumb"><canvas id="thumb-volcano" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Volcano</span><span class="design-sub">10</span></div>
-    </button>
-    <button class="design-btn" data-design="wash" onclick="selectDesign('wash',this)">
-      <div class="design-thumb"><canvas id="thumb-wash" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Wash</span><span class="design-sub">11</span></div>
-    </button>
-    <button class="design-btn" data-design="waves" onclick="selectDesign('waves',this)">
-      <div class="design-thumb"><canvas id="thumb-waves" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Waves</span><span class="design-sub">12</span></div>
-    </button>
-  </div>
-  <div class="main">
-    <div class="loading-screen" id="loading"><span class="loader-text" data-i18n="loading">Loading…</span></div>
-    <div class="floor-container" id="floorContainer">
-      <div class="view-toggle">
-        <button class="view-btn active" id="viewTop" onclick="setView('top')" data-i18n="viewTop">Vista superior</button>
-        <button class="view-btn" id="view3d" onclick="setView('3d')" data-i18n="view3d">Vista 3D</button>
+  <aside class="gallery">
+    <div class="step-head">
+      <span class="step-num">1</span>
+      <div><div class="step-title" data-i18n="stepDesign">Elige tu diseño</div><div class="step-hint" data-i18n="stepDesignHint">Toca uno para verlo en tu pista.</div></div>
+    </div>
+    <div class="design-grid" id="designGrid"></div>
+  </aside>
+  <main class="stage">
+    <div class="stage-inner">
+      <div class="stage-bar">
+        <div class="view-toggle">
+          <button class="view-btn active" id="viewTop" onclick="setView('top')" data-i18n="viewTop">Vista superior</button>
+          <button class="view-btn" id="view3d" onclick="setView('3d')" data-i18n="view3d">Vista 3D</button>
+        </div>
+        <div class="stage-name" id="stageName">Blurry</div>
       </div>
-      <canvas id="mainCanvas" width="1024" height="1024"></canvas>
-      <div id="threeWrap"></div>
-      <div id="transitionOverlay"></div>
+      <div class="floor-container" id="floorContainer">
+        <canvas id="mainCanvas" width="1024" height="1024"></canvas>
+        <div id="threeWrap"></div>
+        <div id="transitionOverlay"></div>
+        <div class="dim-mark dim-w"><span id="dimWLabel"></span></div>
+        <div class="dim-mark dim-d"><span id="dimDLabel"></span></div>
+      </div>
       <div class="canvas-label" id="canvasLabel">Vista Previa — Vista Superior</div>
     </div>
-  </div>
-  <div class="panel">
-    <div class="panel-section">
-      <div class="section-title" data-i18n="activeDesign">Active Design</div>
+  </main>
+  <section class="panel">
+    <div class="panel-section current">
+      <div class="section-kicker" data-i18n="activeDesign">Diseño elegido</div>
       <div class="active-design-name" id="activeName">Blurry</div>
       <div class="active-design-desc" id="activeDesc"></div>
     </div>
     <div class="panel-section">
-      <div class="section-title" data-i18n="dimensions">Medidas de la pista</div>
+      <div class="step-head">
+        <span class="step-num">2</span>
+        <div><div class="step-title" data-i18n="stepColors">Elige los colores</div><div class="step-hint" data-i18n="stepColorsHint">Toca una combinación lista o personaliza cada zona.</div></div>
+      </div>
+      <div class="palette-grid" id="paletteGrid"></div>
+      <div class="sub-title" data-i18n="customColors">Personaliza cada zona</div>
+      <div id="colorRows"></div>
+      <button class="btn-link" onclick="resetColors()" data-i18n="reset">↺ Restablecer</button>
+    </div>
+    <div class="panel-section">
+      <div class="step-head">
+        <span class="step-num">3</span>
+        <div><div class="step-title" data-i18n="dimensions">Medidas de la pista</div></div>
+      </div>
       <div class="dim-grid">
-        <label><span data-i18n="width">Ancho</span><select id="dimW" onchange="setDims('w')"></select></label>
-        <label><span data-i18n="depth">Largo</span><select id="dimD" onchange="setDims('d')"></select></label>
+        <div>
+          <span class="stepper-label" data-i18n="width">Ancho</span>
+          <div class="stepper-ctl">
+            <button id="dimWMinus" onclick="stepDim('w',-1)" aria-label="−">−</button>
+            <output id="dimWVal"></output>
+            <button id="dimWPlus" onclick="stepDim('w',1)" aria-label="+">+</button>
+          </div>
+        </div>
+        <div>
+          <span class="stepper-label" data-i18n="depth">Largo</span>
+          <div class="stepper-ctl">
+            <button id="dimDMinus" onclick="stepDim('d',-1)" aria-label="−">−</button>
+            <output id="dimDVal"></output>
+            <button id="dimDPlus" onclick="stepDim('d',1)" aria-label="+">+</button>
+          </div>
+        </div>
       </div>
       <div class="fit-row">
         <span class="fit-label" data-i18n="fit">Ajuste del diseño</span>
@@ -258,35 +277,34 @@
       </div>
     </div>
     <div class="panel-section">
-      <div class="section-title" data-i18n="colorZones">Color Zones</div>
-      <div id="colorRows"></div>
-      <div class="action-buttons">
-        <button class="btn-primary" onclick="exportPDF()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          <span data-i18n="exportPDF">Export PDF</span>
-        </button>
-        <button class="btn-secondary" onclick="resetColors()" data-i18n="reset">↺ Reset to Default</button>
+      <div class="step-head">
+        <span class="step-num">4</span>
+        <div><div class="step-title" data-i18n="stepExport">Descarga tu propuesta</div><div class="step-hint" data-i18n="stepExportHint">Un PDF con tu diseño, colores, medidas y vista 3D para confirmar tu pedido.</div></div>
       </div>
+      <button class="btn-primary" onclick="exportPDF()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span data-i18n="exportPDF">Exportar PDF</span>
+      </button>
     </div>
-    <div class="panel-section">
-      <div class="section-title" data-i18n="presets">Preset Palettes</div>
-      <div class="palette-grid" id="paletteGrid"></div>
-    </div>
-  </div>
+  </section>
 </div>
 <div id="pdfOverlay">
   <div class="pdf-modal">
-    <div class="pdf-modal-title" data-i18n="generating">Generating PDF…</div>
-    <div class="pdf-modal-sub" data-i18n="generatingSub">Preparing your design summary</div>
+    <div class="pdf-modal-title" data-i18n="generating">Generando PDF…</div>
+    <div class="pdf-modal-sub" data-i18n="generatingSub">Preparando el resumen de tu diseño</div>
     <div class="pdf-spinner"></div>
   </div>
 </div>
 <script>
 const T = {
   en: {
-    tagline:'Dance Floor Configurator', designs:'Designs', loading:'Loading…',
-    preview:'Dance Floor Preview — Top View', activeDesign:'Active Design',
-    colorZones:'Color Zones', exportPDF:'Export PDF', reset:'↺ Reset to Default',
+    tagline:'Dance Floor Configurator', designs:'Designs', loading:'Loading designs…',
+    preview:'Dance Floor Preview — Top View', activeDesign:'Selected design',
+    colorZones:'Color Zones', exportPDF:'Export PDF', reset:'↺ Reset colors',
+    stepDesign:'Choose your design', stepDesignHint:'Tap one to see it on your floor.',
+    stepColors:'Choose the colors', stepColorsHint:'Tap a ready-made combination or customize each zone.',
+    customColors:'Customize each zone', editColor:'Change', nColors:'{n} colors',
+    stepExport:'Download your proposal', stepExportHint:'A PDF with your design, colors, size and 3D view to confirm your order.',
     presets:'Preset Palettes', generating:'Generating PDF…', generatingSub:'Preparing your design summary',
     desc_playful:'Flowing continuous line pattern. Customize the background and line colors.',
     desc_metallic:'Organic cracked stone pattern. Customize the background and vein colors.',
@@ -317,9 +335,13 @@ const T = {
     threeMissing:'The 3D view could not be loaded. Check your internet connection.',
   },
   es: {
-    tagline:'Configurador de Pista de Baile', designs:'Diseños', loading:'Cargando…',
-    preview:'Vista Previa — Vista Superior', activeDesign:'Diseño Activo',
-    colorZones:'Zonas de Color', exportPDF:'Exportar PDF', reset:'↺ Restablecer',
+    tagline:'Configurador de Pista de Baile', designs:'Diseños', loading:'Cargando diseños…',
+    preview:'Vista Previa — Vista Superior', activeDesign:'Diseño elegido',
+    colorZones:'Zonas de Color', exportPDF:'Exportar PDF', reset:'↺ Restablecer colores',
+    stepDesign:'Elige tu diseño', stepDesignHint:'Toca uno para verlo en tu pista.',
+    stepColors:'Elige los colores', stepColorsHint:'Toca una combinación lista o personaliza cada zona.',
+    customColors:'Personaliza cada zona', editColor:'Cambiar', nColors:'{n} colores',
+    stepExport:'Descarga tu propuesta', stepExportHint:'Un PDF con tu diseño, colores, medidas y vista 3D para confirmar tu pedido.',
     presets:'Paletas Predefinidas', generating:'Generando PDF…', generatingSub:'Preparando el resumen de tu diseño',
     desc_playful:'Patrón de línea continua fluida. Personaliza el fondo y las líneas.',
     desc_metallic:'Patrón de piedra agrietada. Personaliza el fondo y las venas.',
@@ -360,6 +382,7 @@ function setLang(l) {
   document.documentElement.lang=l;
   document.title = l==='en' ? 'Kruzeta — Dance Floor Configurator' : 'Kruzeta — Configurador de Pista de Baile';
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('.dc-meta').forEach(el=>{ el.textContent=t('nColors').replace('{n}',el.dataset.zones); });
   buildUI(); buildPalettes(); updateLabel();
 }
 
@@ -531,8 +554,35 @@ function loadAllImages() {
 }
 function onAllLoaded() {
   document.getElementById('loading').classList.add('hidden');
-  buildDimSelects(); layoutFloor(); renderThumbnails(); renderMain(); setLang(lang);
-  window.addEventListener('resize', layoutFloor);
+  buildGallery(); updateDimUI(); layoutFloor(); renderThumbnails(); renderMain(); setLang(lang);
+  window.addEventListener('resize', ()=>{
+    // En celular la barra del navegador cambia la altura al hacer scroll; solo recalculamos si cambia el ancho
+    if(window.innerWidth!==vpBase.w){ vpBase={w:window.innerWidth,h:window.innerHeight}; }
+    layoutFloor();
+  });
+}
+let vpBase={w:window.innerWidth,h:window.innerHeight};
+
+/* Galería de diseños (paso 1) */
+const DESIGN_ORDER=['blurry','geoda','landscape','metallic','minimalistic','playful','shadow','stars','strokes','volcano','wash','waves'];
+const THUMB=192;
+function buildGallery(){
+  const grid=document.getElementById('designGrid'); grid.innerHTML='';
+  DESIGN_ORDER.forEach(d=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='design-card'; b.dataset.design=d;
+    b.onclick=()=>selectDesign(d);
+    b.innerHTML=`<span class="dc-thumb"><canvas id="thumb-${d}" width="${THUMB}" height="${THUMB}"></canvas><span class="dc-check" aria-hidden="true">✓</span></span>
+      <span class="dc-name">${DESIGNS[d].name}</span><span class="dc-meta" data-zones="${DESIGNS[d].zones.length}"></span>`;
+    grid.appendChild(b);
+  });
+  markActiveCard();
+}
+function markActiveCard(){
+  document.querySelectorAll('.design-card').forEach(b=>{
+    const on=b.dataset.design===currentDesign;
+    b.classList.toggle('active',on); b.setAttribute('aria-pressed',on);
+  });
 }
 function hexToRgb(hex){ return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]; }
 
@@ -581,25 +631,23 @@ function renderMain(){
   renderToCanvas(c,currentDesign,colors[currentDesign],MAX,renderOpts());
   if(three){ three.texture.needsUpdate=true; }
 }
-function renderThumbnails(){ Object.keys(DESIGNS).forEach(d=>{ const c=document.getElementById('thumb-'+d); if(c) renderToCanvas(c,d,colors[d],44); }); }
+function renderThumb(d){ const c=document.getElementById('thumb-'+d); if(c) renderToCanvas(c,d,colors[d],44); }
+function renderThumbnails(){ Object.keys(DESIGNS).forEach(renderThumb); }
 
 function buildUI() {
   const container=document.getElementById('colorRows'); container.innerHTML='';
   const design=DESIGNS[currentDesign];
   document.getElementById('activeName').textContent=design.name;
+  document.getElementById('stageName').textContent=design.name;
   document.getElementById('activeDesc').textContent=t(design.descKey);
   design.zones.forEach(zone=>{
     const col=colors[currentDesign][zone.id]||zone.default;
     const row=document.createElement('div'); row.className='color-row';
-    row.innerHTML=`<div class="color-row-left">
-      <div class="color-zone-indicator" style="background:${col}"></div>
+    row.innerHTML=`<div class="color-dot" id="swatch-${zone.id}" style="background:${col}"></div>
       <div><div class="color-row-label">${t(zone.labelKey)}</div>
       <div class="color-row-hex" id="hex-${zone.id}">${col.toUpperCase()}</div></div>
-      </div>
-      <div class="color-swatch-wrapper">
-        <div class="color-swatch-display" id="swatch-${zone.id}" style="background:${col}"></div>
-        <input type="color" value="${col}" oninput="updateColor('${zone.id}',this.value)" onchange="updateColor('${zone.id}',this.value)">
-      </div>`;
+      <span class="color-edit">${t('editColor')}</span>
+      <input type="color" value="${col}" aria-label="${t(zone.labelKey)}" oninput="updateColor('${zone.id}',this.value)" onchange="updateColor('${zone.id}',this.value)">`;
     container.appendChild(row);
   });
 }
@@ -607,10 +655,11 @@ function buildUI() {
 function buildPalettes() {
   const grid=document.getElementById('paletteGrid'); grid.innerHTML='';
   DESIGNS[currentDesign].palettes.forEach((palette,i)=>{
-    const item=document.createElement('div');
-    item.className='palette-item'+(i===0?' active':'');
+    const item=document.createElement('button');
+    item.type='button'; item.className='palette-item'+(i===0?' active':'');
+    item.setAttribute('aria-label',(i+1)+'');
     item.onclick=()=>applyPalette(palette,item);
-    const c=document.createElement('canvas'); c.width=60; c.height=60;
+    const c=document.createElement('canvas'); c.width=120; c.height=120;
     item.appendChild(c); grid.appendChild(item);
     renderToCanvas(c,currentDesign,palette,60);
   });
@@ -620,8 +669,7 @@ function updateColor(zoneId,hex) {
   colors[currentDesign][zoneId]=hex;
   const sw=document.getElementById('swatch-'+zoneId); if(sw) sw.style.background=hex;
   const hx=document.getElementById('hex-'+zoneId); if(hx) hx.textContent=hex.toUpperCase();
-  document.querySelectorAll('.color-zone-indicator').forEach((el,idx)=>{ const z=DESIGNS[currentDesign].zones[idx]; if(z&&z.id===zoneId) el.style.background=hex; });
-  renderMain(); renderThumbnails();
+  renderMain(); renderThumb(currentDesign);
 }
 
 function applyPalette(palette,clickedItem) {
@@ -631,13 +679,11 @@ function applyPalette(palette,clickedItem) {
   buildUI();
 }
 
-function selectDesign(design,btn) {
+function selectDesign(design) {
   if(design===currentDesign) return;
   const overlay=document.getElementById('transitionOverlay'); overlay.classList.add('show');
+  currentDesign=design; markActiveCard();
   setTimeout(()=>{
-    currentDesign=design;
-    document.querySelectorAll('.design-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
     buildUI(); buildPalettes(); renderMain();
     setTimeout(()=>overlay.classList.remove('show'),50);
   },220);
@@ -645,7 +691,7 @@ function selectDesign(design,btn) {
 
 function resetColors() {
   DESIGNS[currentDesign].zones.forEach(z=>{ colors[currentDesign][z.id]=z.default; });
-  buildUI(); renderMain(); renderThumbnails();
+  buildUI(); renderMain(); renderThumb(currentDesign);
   document.querySelectorAll('.palette-item').forEach((el,i)=>el.classList.toggle('active',i===0));
 }
 
@@ -759,18 +805,20 @@ function floorD(){ return floor.d*PANEL; }
 function floorAspect(){ return floor.w/floor.d; }
 function floorArea(){ return (floorW()*floorD()).toFixed(2); }
 
-function buildDimSelects(){
-  ['dimW','dimD'].forEach((id,k)=>{
-    const sel=document.getElementById(id); sel.innerHTML='';
-    for(let i=MIN_PANELS;i<=MAX_PANELS;i++){ const o=document.createElement('option'); o.value=i; o.textContent=fm(i)+' m'; sel.appendChild(o); }
-    sel.value=k===0?floor.w:floor.d;
-  });
+// La pista mínima es 2.44 × 3.66 m: no se permite que ambos lados queden en el mínimo
+function canSet(w,d){ return w>=MIN_PANELS&&d>=MIN_PANELS&&w<=MAX_PANELS&&d<=MAX_PANELS&&!(w===MIN_PANELS&&d===MIN_PANELS); }
+function stepDim(which,delta){
+  const n={w:floor.w,d:floor.d}; n[which]+=delta;
+  if(!canSet(n.w,n.d)) return;
+  floor=n; updateDimUI(); afterFloorChange();
 }
-function setDims(which){
-  const sw=document.getElementById('dimW'), sd=document.getElementById('dimD');
-  let w=+sw.value, d=+sd.value;
-  if(w===MIN_PANELS&&d===MIN_PANELS){ if(which==='w') d=MIN_PANELS+1; else w=MIN_PANELS+1; sw.value=w; sd.value=d; }
-  floor={w,d}; afterFloorChange();
+function updateDimUI(){
+  document.getElementById('dimWVal').textContent=fm(floor.w)+' m';
+  document.getElementById('dimDVal').textContent=fm(floor.d)+' m';
+  document.getElementById('dimWMinus').disabled=!canSet(floor.w-1,floor.d);
+  document.getElementById('dimWPlus').disabled=!canSet(floor.w+1,floor.d);
+  document.getElementById('dimDMinus').disabled=!canSet(floor.w,floor.d-1);
+  document.getElementById('dimDPlus').disabled=!canSet(floor.w,floor.d+1);
 }
 function afterFloorChange(){
   layoutFloor(); renderMain();
@@ -787,19 +835,29 @@ function setZoom(v){ zoomLevel=(+v)/100; document.getElementById('zoomVal').text
 function updateLabel(){
   const el=document.getElementById('canvasLabel'); if(!el) return;
   el.textContent = viewMode==='3d' ? t('preview3d') : t('preview')+'  ·  '+fm(floor.w)+' × '+fm(floor.d)+' m';
+  document.getElementById('dimWLabel').textContent=fm(floor.w)+' m';
+  document.getElementById('dimDLabel').textContent=fm(floor.d)+' m';
 }
+function isMobile(){ return window.matchMedia('(max-width:960px)').matches; }
 function layoutFloor(){
-  const main=document.querySelector('.main'), fc=document.getElementById('floorContainer');
-  if(!main||!fc) return;
-  const cs=getComputedStyle(main);
-  const availW=main.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
-  const availH=main.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-96;
+  const stage=document.querySelector('.stage'), fc=document.getElementById('floorContainer');
+  if(!stage||!fc) return;
+  const cs=getComputedStyle(stage), mob=isMobile(), is3d=viewMode==='3d';
+  const fcs=getComputedStyle(fc);
+  // espacio que ocupan las cotas de medidas alrededor de la pista
+  const mX=is3d?0:parseFloat(fcs.marginLeft)+parseFloat(fcs.marginRight);
+  const mY=is3d?0:parseFloat(fcs.marginTop);
+  const availW=stage.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-mX;
+  // En celular la vista previa se queda fija arriba: limitamos su alto para dejar ver las opciones
+  const availH=mob
+    ? Math.round(vpBase.h*(is3d?0.32:0.28))
+    : stage.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-mY-100;
   let w,h;
-  if(viewMode==='3d'){
-    w=Math.min(availW,820); h=Math.min(Math.max(availH,220),w*0.72);
+  if(is3d){
+    w=Math.min(availW,880); h=Math.min(Math.max(availH,200),w*0.72);
     if(w>h/0.5) w=h/0.5;
   } else {
-    const a=floorAspect(); w=Math.min(availW,560); h=w/a;
+    const a=floorAspect(); w=Math.min(availW,mob?availW:640); h=w/a;
     if(h>availH){ h=Math.max(availH,120); w=h*a; }
   }
   fc.style.width=Math.round(w)+'px'; fc.style.height=Math.round(h)+'px';
