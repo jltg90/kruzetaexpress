@@ -9,7 +9,8 @@
   "estado_general": "entregado",
   "urls": {
     "produccion": "https://jltg90.github.io/kruzetaexpress/",
-    "repo": "https://github.com/jltg90/kruzetaexpress"
+    "repo": "https://github.com/jltg90/kruzetaexpress",
+    "preview": "https://kruzetaexpress-preview.vercel.app"
   },
   "modulos": {
     "auth_login": "no_aplica",
@@ -19,7 +20,7 @@
     "notificaciones": "no_aplica",
     "pagos": "no_aplica",
     "reportes": "completado",
-    "responsive_movil": "pendiente",
+    "responsive_movil": "completado",
     "roles_permisos": "no_aplica",
     "seguridad": "no_aplica",
     "seo": "no_aplica",
@@ -28,7 +29,7 @@
   },
   "publico_en_portafolio": true,
   "screenshot": "/screenshots/kruzetaexpress.png",
-  "ultima_sesion": "2026-07-23",
-  "siguiente_paso": "Confirmar responsive móvil. Migrado a git + GitHub el 2026-07-23: se agregó .gitignore que no existía; el repo ya vivía en GitHub (subido vía 'Add files via upload' en marzo 2026), ahora también clonado en C:\\dev\\kruzetaexpress.",
-  "notas": "Sitio estático de una sola página (HTML/CSS/JS vanilla), sin backend. Export a PDF vía jsPDF. Desplegado en GitHub Pages (jltg90.github.io/kruzetaexpress), no en Vercel. Sin código fuente adicional fuera del repo — el repo de GitHub es la única fuente conocida."
+  "ultima_sesion": "2026-10-14",
+  "siguiente_paso": "Confirmar con el cliente la nueva versión en producción (rediseño móvil, galería de diseños en cuadrícula, pasos 1–4). Pendiente opcional: bajar el peso de la página (17 MB) sacando las máscaras base64 a archivos aparte para que cargue más rápido en celular.",
+  "notas": "Sitio estático de una sola página (HTML/CSS/JS vanilla), sin backend. Export a PDF vía jsPDF; vista 3D vía Three.js r128 (cdnjs). Desplegado en GitHub Pages (jltg90.github.io/kruzetaexpress) desde la rama main, no en Vercel. El index.html pesa 17 MB por las máscaras PNG embebidas en base64 y usa CRLF. Cambios 2026-09-09 (rama feature/3d-medidas) y rediseño móvil 2026-10-14 publicados en main el 2026-10-14 a pedido del dueño. Preview de la rama en proyecto Vercel aparte kruzetaexpress-preview (desplegado desde carpeta temporal con solo index.html; no es la producción del cliente). Respaldo: https://raw.githack.com/jltg90/kruzetaexpress/feature/3d-medidas/index.html (muestra un aviso intermedio)."
 }

@@ -1,248 +1,310 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kruzeta — Dance Floor Configurator</title>
+<title>Kruzeta — Configurador de Pista de Baile</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --cream:#f5f0e8; --charcoal:#1a1a1a; --gold:#c9a84c; --mid:#888; --panel-bg:rgba(250,247,242,0.97); --border:rgba(0,0,0,0.08); }
-  body { font-family:'Montserrat',sans-serif; background:var(--charcoal); color:var(--charcoal); min-height:100vh; display:flex; flex-direction:column; }
-  header { background:var(--charcoal); color:var(--cream); display:flex; align-items:center; justify-content:space-between; padding:18px 40px; border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; }
-  .header-left { display:flex; align-items:center; gap:24px; }
-  .logo { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; letter-spacing:0.12em; text-transform:uppercase; }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --ink:#121110; --ink-2:#1a1917; --stage:#0f0e0d;
+    --cream:#f5f0e8; --paper:#faf7f2; --charcoal:#1a1a1a;
+    --gold:#c9a84c; --gold-2:#e2c77e;
+    --on-dark:rgba(245,240,232,0.92); --on-dark-2:rgba(245,240,232,0.62); --on-dark-3:rgba(245,240,232,0.4);
+    --line-dark:rgba(255,255,255,0.08);
+    --mid:#77716a; --border:rgba(26,26,26,0.1); --panel-bg:#faf7f2;
+    --serif:'Cormorant Garamond',Georgia,serif; --sans:'Montserrat',system-ui,sans-serif;
+  }
+  html { -webkit-text-size-adjust:100%; }
+  body { font-family:var(--sans); background:var(--ink); color:var(--charcoal); min-height:100vh; display:flex; flex-direction:column; -webkit-font-smoothing:antialiased; }
+  button { font-family:inherit; color:inherit; -webkit-tap-highlight-color:transparent; }
+  button:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+
+  /* ── Encabezado ── */
+  header { background:var(--ink); color:var(--cream); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 28px; border-bottom:1px solid var(--line-dark); flex-shrink:0; }
+  .brand { display:flex; align-items:baseline; gap:22px; min-width:0; }
+  .logo { font-family:var(--serif); font-size:22px; font-weight:300; letter-spacing:0.14em; text-transform:uppercase; white-space:nowrap; }
   .logo span { color:var(--gold); }
-  .tagline { font-size:10px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.35); font-weight:300; }
-  .lang-toggle { display:flex; align-items:center; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:5px 6px; }
-  .lang-btn { background:none; border:none; cursor:pointer; font-family:'Montserrat',sans-serif; font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.35); padding:4px 10px; border-radius:14px; transition:all 0.2s; }
-  .lang-btn.active { background:var(--gold); color:var(--charcoal); }
-  .app { display:flex; flex:1; min-height:0; }
-  .sidebar { width:210px; background:var(--charcoal); flex-shrink:0; padding:28px 0; border-right:1px solid rgba(255,255,255,0.07); display:flex; flex-direction:column; gap:2px; overflow-y:auto; }
-  .sidebar-label { font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:rgba(255,255,255,0.3); padding:0 22px 14px; font-weight:500; }
-  .design-btn { background:none; border:none; cursor:pointer; padding:11px 22px; display:flex; align-items:center; gap:12px; transition:background 0.2s; position:relative; width:100%; }
-  .design-btn:hover { background:rgba(255,255,255,0.04); }
-  .design-btn.active { background:rgba(255,255,255,0.07); }
-  .design-btn.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--gold); }
-  .design-thumb { width:44px; height:44px; border-radius:4px; overflow:hidden; flex-shrink:0; border:1px solid rgba(255,255,255,0.1); }
-  .design-thumb canvas { width:100%; height:100%; display:block; }
-  .design-info { text-align:left; }
-  .design-name { font-family:'Cormorant Garamond',serif; font-size:15px; color:var(--cream); font-weight:300; letter-spacing:0.05em; display:block; }
-  .design-sub { font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:0.1em; font-family:'Courier New',monospace; display:block; margin-top:2px; }
-  .main { flex:1; display:flex; align-items:center; justify-content:center; background:#111; position:relative; overflow:hidden; padding:36px; }
-  .main::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 30%,rgba(201,168,76,0.04) 0%,transparent 70%); pointer-events:none; }
-  .floor-container { position:relative; width:100%; max-width:560px; aspect-ratio:1; }
-  #mainCanvas { width:100%; height:100%; display:block; border-radius:2px; box-shadow:0 40px 120px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.04); }
-  .canvas-label { position:absolute; bottom:-26px; left:50%; transform:translateX(-50%); font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:rgba(255,255,255,0.2); white-space:nowrap; }
-  #transitionOverlay { position:absolute; inset:0; background:#111; pointer-events:none; opacity:0; transition:opacity 0.25s; border-radius:2px; }
-  #transitionOverlay.show { opacity:1; }
-  .panel { width:272px; background:var(--panel-bg); flex-shrink:0; display:flex; flex-direction:column; border-left:1px solid var(--border); overflow-y:auto; }
-  .panel-section { padding:20px 22px; border-bottom:1px solid var(--border); }
-  .panel-section:last-child { border-bottom:none; }
-  .section-title { font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:var(--mid); font-weight:500; margin-bottom:14px; }
-  .active-design-name { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:300; color:var(--charcoal); line-height:1; margin-bottom:6px; }
-  .active-design-desc { font-size:11px; color:var(--mid); line-height:1.6; font-weight:300; }
-  .color-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); }
-  .color-row:last-child { border-bottom:none; }
-  .color-row-left { display:flex; align-items:center; gap:11px; }
-  .color-zone-indicator { width:7px; height:26px; border-radius:2px; flex-shrink:0; }
-  .color-row-label { font-size:11px; color:var(--charcoal); font-weight:400; letter-spacing:0.04em; }
-  .color-row-hex { font-size:10px; color:var(--mid); font-family:'Courier New',monospace; margin-top:1px; }
-  .color-swatch-wrapper { position:relative; width:30px; height:30px; border-radius:50%; overflow:hidden; border:2px solid rgba(0,0,0,0.08); cursor:pointer; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,0.12); transition:transform 0.15s; }
-  .color-swatch-wrapper:hover { transform:scale(1.1); }
-  .color-swatch-wrapper input[type=color] { position:absolute; inset:-8px; width:calc(100% + 16px); height:calc(100% + 16px); opacity:0; cursor:pointer; border:none; padding:0; }
-  .color-swatch-display { position:absolute; inset:0; border-radius:50%; pointer-events:none; }
-  .palette-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-top:4px; }
-  .palette-item { cursor:pointer; border-radius:5px; overflow:hidden; border:2px solid transparent; transition:border-color 0.15s,transform 0.15s; aspect-ratio:1; }
-  .palette-item:hover { transform:scale(1.05); }
-  .palette-item.active { border-color:var(--charcoal); }
-  .palette-item canvas { width:100%; height:100%; display:block; }
-  .action-buttons { display:flex; flex-direction:column; gap:8px; margin-top:14px; }
-  .btn-primary { width:100%; padding:11px; border:none; border-radius:4px; font-family:'Montserrat',sans-serif; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; background:var(--charcoal); color:var(--cream); font-weight:500; display:flex; align-items:center; justify-content:center; gap:8px; }
-  .btn-primary:hover { background:#333; }
-  .btn-primary:active { transform:scale(0.98); }
-  .btn-secondary { width:100%; padding:10px; background:none; border:1px solid var(--border); border-radius:4px; font-family:'Montserrat',sans-serif; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--mid); cursor:pointer; transition:all 0.2s; }
-  .btn-secondary:hover { background:var(--charcoal); color:var(--cream); border-color:var(--charcoal); }
-  .loading-screen { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#111; z-index:10; transition:opacity 0.5s; }
+  .tagline { font-size:10px; letter-spacing:0.28em; text-transform:uppercase; color:var(--on-dark-3); font-weight:400; white-space:nowrap; }
+  .lang-toggle { display:flex; align-items:center; background:rgba(255,255,255,0.06); border:1px solid var(--line-dark); border-radius:999px; padding:3px; flex-shrink:0; }
+  .lang-btn { background:none; border:none; cursor:pointer; font-size:10px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--on-dark-3); padding:7px 12px; border-radius:999px; transition:all 0.2s; }
+  .lang-btn.active { background:var(--gold); color:var(--ink); }
 
-  /* ── MOBILE RESPONSIVE ── */
-  @media (max-width: 700px) {
-    /* Header: stack logo and tagline, hide tagline, compact padding */
-    header { padding:12px 16px; flex-wrap:wrap; gap:8px; }
-    .header-left { gap:10px; flex-wrap:wrap; }
-    .logo { font-size:15px; letter-spacing:0.08em; }
-    .tagline { display:none; }
-    .lang-toggle { padding:4px 5px; }
-
-    /* App: stack sidebar above main content */
-    .app { flex-direction:column; }
-
-    /* Sidebar: horizontal scrolling row of design buttons */
-    .sidebar {
-      width:100%;
-      flex-direction:row;
-      overflow-x:auto;
-      overflow-y:hidden;
-      padding:10px 0;
-      gap:0;
-      border-right:none;
-      border-bottom:1px solid rgba(255,255,255,0.07);
-      flex-shrink:0;
-    }
-    .sidebar-label { display:none; }
-    .design-btn {
-      flex-direction:column;
-      align-items:center;
-      padding:8px 10px;
-      gap:5px;
-      min-width:72px;
-      flex-shrink:0;
-    }
-    .design-thumb { width:38px; height:38px; }
-    .design-name { font-size:10px; letter-spacing:0.03em; text-align:center; }
-    .design-sub { font-size:8px; text-align:center; }
-    .design-btn.active::before { left:0; top:auto; bottom:0; right:0; width:100%; height:2px; }
-
-    /* Main canvas area: less padding */
-    .main { padding:16px; min-height:260px; }
-
-    /* Panel: full width below canvas */
-    .panel {
-      width:100%;
-      border-left:none;
-      border-top:1px solid var(--border);
-    }
-    .panel-inner { padding:16px; }
-
-    /* Palette grid: allow more columns on mobile */
-    .palette-grid { grid-template-columns: repeat(4, 1fr); }
-
-    /* Active design name smaller */
-    .active-design-name { font-size:20px; }
-
-    /* Buttons full width already, just reduce padding */
-    .btn-primary { padding:10px; font-size:9px; }
+  /* ── Distribución (escritorio) ── */
+  .app { flex:1; min-height:0; display:grid; grid-template-columns:288px minmax(0,1fr) 340px; }
+  @media (min-width:961px) {
+    body { height:100vh; overflow:hidden; }
+    .gallery, .panel { overflow-y:auto; }
   }
 
+  /* ── Pasos numerados ── */
+  .step-head { display:flex; gap:12px; align-items:flex-start; margin-bottom:16px; }
+  .step-num { flex:0 0 26px; height:26px; border-radius:50%; border:1px solid var(--gold); color:#a8862f; font-size:11px; font-weight:500; display:grid; place-items:center; margin-top:1px; }
+  .gallery .step-num { color:var(--gold); }
+  .step-title { font-family:var(--serif); font-size:22px; font-weight:400; line-height:1.1; color:var(--charcoal); }
+  .step-hint { font-size:11px; line-height:1.5; margin-top:4px; color:var(--mid); font-weight:300; }
+  .gallery .step-title { color:var(--cream); }
+  .gallery .step-hint { color:var(--on-dark-3); }
+
+  /* ── Galería de diseños ── */
+  .gallery { background:var(--ink-2); border-right:1px solid var(--line-dark); padding:22px 18px 28px; }
+  .design-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px 12px; }
+  .design-card { background:none; border:0; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:7px; padding:0; min-width:0; }
+  .dc-thumb { position:relative; display:block; aspect-ratio:1; border-radius:8px; overflow:hidden; box-shadow:0 0 0 1px var(--line-dark); transition:box-shadow 0.2s, transform 0.2s; }
+  .dc-thumb canvas { width:100%; height:100%; display:block; }
+  .design-card:hover .dc-thumb { transform:translateY(-2px); box-shadow:0 0 0 1px rgba(255,255,255,0.25), 0 10px 24px rgba(0,0,0,0.45); }
+  .design-card.active .dc-thumb { box-shadow:0 0 0 2px var(--gold), 0 10px 28px rgba(0,0,0,0.5); transform:none; }
+  .dc-check { position:absolute; top:6px; right:6px; width:22px; height:22px; border-radius:50%; background:var(--gold); color:var(--ink); font-size:12px; font-weight:500; display:grid; place-items:center; opacity:0; transform:scale(0.6); transition:all 0.2s; box-shadow:0 2px 6px rgba(0,0,0,0.3); }
+  .design-card.active .dc-check { opacity:1; transform:none; }
+  .dc-name { font-family:var(--serif); font-size:17px; color:var(--on-dark); line-height:1; padding-left:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .design-card.active .dc-name { color:var(--gold-2); }
+  .dc-meta { font-size:9.5px; letter-spacing:0.08em; color:var(--on-dark-3); padding-left:2px; margin-top:-3px; }
+
+  /* ── Escenario (vista previa) ── */
+  .stage { position:relative; background:radial-gradient(ellipse at 50% 40%,#1e1c19 0%,var(--stage) 72%); display:flex; align-items:center; justify-content:center; padding:28px 40px; overflow:hidden; min-width:0; }
+  .stage-inner { display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .stage-bar { display:flex; align-items:center; justify-content:center; gap:12px; }
+  .stage-name { display:none; font-family:var(--serif); font-size:20px; color:var(--cream); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .view-toggle { display:flex; gap:2px; background:rgba(255,255,255,0.05); border:1px solid var(--line-dark); border-radius:999px; padding:3px; flex-shrink:0; }
+  .view-btn { background:none; border:none; cursor:pointer; font-size:10px; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; color:var(--on-dark-2); padding:8px 16px; border-radius:999px; transition:all 0.2s; white-space:nowrap; }
+  .view-btn:hover { color:var(--cream); }
+  .view-btn.active { background:var(--gold); color:var(--ink); }
+  .floor-container { position:relative; margin:26px 28px 0; }
+  .floor-container.mode-3d { margin:0; }
+  #mainCanvas { width:100%; height:100%; display:block; border-radius:3px; box-shadow:0 30px 90px rgba(0,0,0,0.75),0 0 0 1px rgba(255,255,255,0.05); }
+  #threeWrap { display:none; width:100%; height:100%; border-radius:10px; overflow:hidden; box-shadow:0 30px 90px rgba(0,0,0,0.75),0 0 0 1px rgba(255,255,255,0.05); cursor:grab; touch-action:none; }
+  #threeWrap:active { cursor:grabbing; }
+  #threeWrap canvas { display:block; width:100% !important; height:100% !important; }
+  .floor-container.mode-3d #threeWrap { display:block; }
+  .floor-container.mode-3d #mainCanvas { display:none; }
+  .floor-container.mode-3d .dim-mark { display:none; }
+  /* Cotas de ancho y largo alrededor de la pista */
+  .dim-mark { position:absolute; display:flex; align-items:center; gap:8px; color:var(--on-dark-2); font-size:10px; letter-spacing:0.12em; font-variant-numeric:tabular-nums; pointer-events:none; white-space:nowrap; }
+  .dim-mark::before, .dim-mark::after { content:''; flex:1; background:rgba(201,168,76,0.45); }
+  .dim-w { left:0; right:0; top:-24px; height:12px; border-left:1px solid rgba(201,168,76,0.45); border-right:1px solid rgba(201,168,76,0.45); }
+  .dim-w::before, .dim-w::after { height:1px; }
+  .dim-d { top:0; bottom:0; right:-26px; width:12px; flex-direction:column; border-top:1px solid rgba(201,168,76,0.45); border-bottom:1px solid rgba(201,168,76,0.45); }
+  .dim-d::before, .dim-d::after { width:1px; }
+  .dim-d span { writing-mode:vertical-rl; }
+  .canvas-label { font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:var(--on-dark-3); text-align:center; }
+  #transitionOverlay { position:absolute; inset:0; background:var(--stage); pointer-events:none; opacity:0; transition:opacity 0.22s; border-radius:3px; }
+  #transitionOverlay.show { opacity:1; }
+
+  /* ── Pantalla de carga ── */
+  .loading-screen { position:fixed; inset:0; display:flex; flex-direction:column; gap:22px; align-items:center; justify-content:center; background:var(--stage); z-index:60; transition:opacity 0.5s; color:var(--cream); text-align:center; padding:24px; }
   .loading-screen.hidden { opacity:0; pointer-events:none; }
-  .loader-text { font-family:'Cormorant Garamond',serif; font-size:18px; color:rgba(255,255,255,0.3); letter-spacing:0.2em; }
-  #pdfOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; }
+  .loader-logo { font-family:var(--serif); font-size:26px; font-weight:300; letter-spacing:0.16em; text-transform:uppercase; }
+  .loader-logo span { color:var(--gold); }
+  .loader-bar { width:160px; height:2px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; position:relative; }
+  .loader-bar::after { content:''; position:absolute; top:0; bottom:0; width:40%; background:var(--gold); animation:slide 1.2s ease-in-out infinite; }
+  @keyframes slide { from { left:-40%; } to { left:100%; } }
+  .loader-text { font-size:10px; letter-spacing:0.28em; text-transform:uppercase; color:var(--on-dark-3); }
+
+  /* ── Panel de opciones ── */
+  .panel { background:var(--paper); border-left:1px solid var(--border); }
+  .panel-section { padding:22px 24px; border-bottom:1px solid var(--border); }
+  .panel-section:last-child { border-bottom:none; }
+  .panel-section.current { background:var(--cream); }
+  .section-kicker { font-size:9.5px; letter-spacing:0.3em; text-transform:uppercase; color:var(--mid); font-weight:500; margin-bottom:8px; }
+  .active-design-name { font-family:var(--serif); font-size:32px; font-weight:400; color:var(--charcoal); line-height:1; margin-bottom:8px; }
+  .active-design-desc { font-size:12px; color:var(--mid); line-height:1.6; font-weight:300; }
+  .palette-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; }
+  .palette-item { cursor:pointer; border-radius:8px; overflow:hidden; border:0; padding:0; aspect-ratio:1; box-shadow:0 0 0 1px var(--border); transition:transform 0.15s; background:none; }
+  .palette-item:hover { transform:scale(1.04); }
+  .palette-item.active { outline:2px solid var(--charcoal); outline-offset:2px; }
+  .palette-item canvas { width:100%; height:100%; display:block; }
+  .sub-title { font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--mid); font-weight:500; margin:22px 0 4px; }
+  .color-row { position:relative; display:flex; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .color-row:last-child { border-bottom:none; }
+  .color-dot { width:34px; height:34px; border-radius:50%; flex-shrink:0; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.14),0 2px 6px rgba(0,0,0,0.1); }
+  .color-row-label { font-size:13px; color:var(--charcoal); letter-spacing:0.02em; }
+  .color-row-hex { font-size:10.5px; color:var(--mid); font-family:'Courier New',monospace; margin-top:2px; }
+  .color-edit { margin-left:auto; font-size:9.5px; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--charcoal); border:1px solid var(--border); background:#fff; border-radius:999px; padding:7px 13px; transition:all 0.15s; }
+  .color-row:hover .color-edit { background:var(--charcoal); color:var(--cream); border-color:var(--charcoal); }
+  .color-row input[type=color] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; border:none; padding:0; }
+  .btn-link { background:none; border:0; color:var(--mid); font-size:11px; letter-spacing:0.06em; margin-top:12px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; padding:4px 0; }
+  .btn-link:hover { color:var(--charcoal); }
+  .dim-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .stepper-label { display:block; font-size:9.5px; letter-spacing:0.2em; text-transform:uppercase; color:var(--mid); font-weight:500; margin-bottom:6px; }
+  .stepper-ctl { display:flex; align-items:center; border:1px solid var(--border); border-radius:10px; background:#fff; height:46px; overflow:hidden; }
+  .stepper-ctl button { width:38px; height:100%; border:0; background:none; font-size:20px; font-weight:300; cursor:pointer; color:var(--charcoal); flex-shrink:0; transition:background 0.15s; }
+  .stepper-ctl button:hover:not(:disabled) { background:rgba(0,0,0,0.04); }
+  .stepper-ctl button:disabled { opacity:0.25; cursor:default; }
+  .stepper-ctl output { flex:1; text-align:center; white-space:nowrap; font-size:14px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .fit-row { display:flex; align-items:center; justify-content:space-between; margin-top:16px; gap:8px; }
+  .fit-label { font-size:11px; color:var(--mid); letter-spacing:0.04em; white-space:nowrap; }
+  .seg { display:flex; border:1px solid var(--border); border-radius:999px; padding:3px; background:#fff; }
+  .seg-btn { background:none; border:none; cursor:pointer; font-size:9.5px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--mid); padding:7px 13px; border-radius:999px; transition:all 0.15s; }
+  .seg-btn.active { background:var(--charcoal); color:var(--cream); }
+  .zoom-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; }
+  .zoom-row input[type=range] { flex:1; accent-color:var(--charcoal); }
+  .btn-primary { width:100%; padding:16px; border:none; border-radius:10px; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; background:var(--gold); color:var(--ink); font-weight:500; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 8px 20px rgba(201,168,76,0.28); }
+  .btn-primary:hover { background:var(--gold-2); }
+  .btn-primary:active { transform:scale(0.98); }
+
+  /* ── Celular y tableta ── */
+  @media (max-width:960px) {
+    header { padding:10px 16px; }
+    .tagline { display:none; }
+    .logo { font-size:16px; letter-spacing:0.1em; }
+    .app { display:flex; flex-direction:column; }
+    /* La vista previa se queda fija arriba para ver cada cambio al momento */
+    .stage { order:1; position:sticky; top:0; z-index:20; padding:10px 16px 14px; box-shadow:0 10px 24px rgba(0,0,0,0.4); }
+    .stage-inner { gap:8px; width:100%; }
+    .stage-bar { width:100%; justify-content:space-between; }
+    .stage-name { display:block; }
+    .view-btn { padding:7px 12px; font-size:9.5px; letter-spacing:0.12em; }
+    .canvas-label { display:none; }
+    .floor-container { margin:22px 26px 0 0; }
+    .gallery { order:2; border-right:0; padding:22px 16px 26px; }
+    .design-grid { grid-template-columns:repeat(4,1fr); gap:14px 8px; }
+    .dc-name { font-size:14px; }
+    .dc-meta { display:none; }
+    .dc-check { width:18px; height:18px; top:4px; right:4px; font-size:10px; }
+    .panel { order:3; border-left:0; }
+    .panel-section { padding:22px 16px; }
+    .active-design-name { font-size:28px; }
+  }
+  @media (min-width:600px) and (max-width:960px) { .design-grid { grid-template-columns:repeat(6,1fr); } }
+  @media (max-width:350px) { .design-grid { grid-template-columns:repeat(3,1fr); } }
+  @media (max-width:960px) and (max-height:600px) { .stage { position:relative; } }
+
+  /* ── Generando PDF ── */
+  #pdfOverlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:16px; }
   #pdfOverlay.show { display:flex; }
-  .pdf-modal { background:var(--panel-bg); border-radius:8px; padding:36px 40px; text-align:center; }
-  .pdf-modal-title { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:300; margin-bottom:8px; }
+  .pdf-modal { background:var(--panel-bg); border-radius:12px; padding:36px 40px; text-align:center; }
+  .pdf-modal-title { font-family:var(--serif); font-size:24px; font-weight:400; margin-bottom:8px; }
   .pdf-modal-sub { font-size:11px; color:var(--mid); }
-  .pdf-spinner { width:32px; height:32px; border:2px solid var(--border); border-top-color:var(--charcoal); border-radius:50%; animation:spin 0.7s linear infinite; margin:20px auto 0; }
+  .pdf-spinner { width:32px; height:32px; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; margin:20px auto 0; }
   @keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
+<div class="loading-screen" id="loading">
+  <div class="loader-logo">Kruzeta <span>·</span> Express</div>
+  <div class="loader-bar"></div>
+  <span class="loader-text" data-i18n="loading">Cargando diseños…</span>
+</div>
 <header>
-  <div class="header-left">
-    <div class="logo">Kruzeta <span>·</span> <span id="logoSubtitle">Express Designs</span></div>
-    <div class="tagline" data-i18n="tagline">Dance Floor Configurator</div>
+  <div class="brand">
+    <div class="logo">Kruzeta <span>·</span> <span id="logoSubtitle">Diseños Express</span></div>
+    <div class="tagline" data-i18n="tagline">Configurador de Pista de Baile</div>
   </div>
   <div class="lang-toggle">
-    <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
-    <button class="lang-btn" onclick="setLang('es')" id="btn-es">ES</button>
+    <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+    <button class="lang-btn active" onclick="setLang('es')" id="btn-es">ES</button>
   </div>
 </header>
 <div class="app">
-  <div class="sidebar">
-    <div class="sidebar-label" data-i18n="designs">Designs</div>
-    <button class="design-btn active" data-design="blurry" onclick="selectDesign('blurry',this)">
-      <div class="design-thumb"><canvas id="thumb-blurry" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Blurry</span><span class="design-sub">01</span></div>
-    </button>
-    <button class="design-btn" data-design="geoda" onclick="selectDesign('geoda',this)">
-      <div class="design-thumb"><canvas id="thumb-geoda" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Geoda</span><span class="design-sub">02</span></div>
-    </button>
-    <button class="design-btn" data-design="landscape" onclick="selectDesign('landscape',this)">
-      <div class="design-thumb"><canvas id="thumb-landscape" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Landscape</span><span class="design-sub">03</span></div>
-    </button>
-    <button class="design-btn" data-design="metallic" onclick="selectDesign('metallic',this)">
-      <div class="design-thumb"><canvas id="thumb-metallic" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Metallic</span><span class="design-sub">04</span></div>
-    </button>
-    <button class="design-btn" data-design="minimalistic" onclick="selectDesign('minimalistic',this)">
-      <div class="design-thumb"><canvas id="thumb-minimalistic" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Minimalistic</span><span class="design-sub">05</span></div>
-    </button>
-    <button class="design-btn" data-design="playful" onclick="selectDesign('playful',this)">
-      <div class="design-thumb"><canvas id="thumb-playful" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Playful</span><span class="design-sub">06</span></div>
-    </button>
-    <button class="design-btn" data-design="shadow" onclick="selectDesign('shadow',this)">
-      <div class="design-thumb"><canvas id="thumb-shadow" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Shadow</span><span class="design-sub">07</span></div>
-    </button>
-    <button class="design-btn" data-design="stars" onclick="selectDesign('stars',this)">
-      <div class="design-thumb"><canvas id="thumb-stars" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Stars</span><span class="design-sub">08</span></div>
-    </button>
-    <button class="design-btn" data-design="strokes" onclick="selectDesign('strokes',this)">
-      <div class="design-thumb"><canvas id="thumb-strokes" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Strokes</span><span class="design-sub">09</span></div>
-    </button>
-    <button class="design-btn" data-design="volcano" onclick="selectDesign('volcano',this)">
-      <div class="design-thumb"><canvas id="thumb-volcano" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Volcano</span><span class="design-sub">10</span></div>
-    </button>
-    <button class="design-btn" data-design="wash" onclick="selectDesign('wash',this)">
-      <div class="design-thumb"><canvas id="thumb-wash" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Wash</span><span class="design-sub">11</span></div>
-    </button>
-    <button class="design-btn" data-design="waves" onclick="selectDesign('waves',this)">
-      <div class="design-thumb"><canvas id="thumb-waves" width="44" height="44"></canvas></div>
-      <div class="design-info"><span class="design-name">Waves</span><span class="design-sub">12</span></div>
-    </button>
-  </div>
-  <div class="main">
-    <div class="loading-screen" id="loading"><span class="loader-text" data-i18n="loading">Loading…</span></div>
-    <div class="floor-container">
-      <canvas id="mainCanvas" width="1024" height="1024"></canvas>
-      <div id="transitionOverlay"></div>
-      <div class="canvas-label" data-i18n="preview">Dance Floor Preview — Top View</div>
+  <aside class="gallery">
+    <div class="step-head">
+      <span class="step-num">1</span>
+      <div><div class="step-title" data-i18n="stepDesign">Elige tu diseño</div><div class="step-hint" data-i18n="stepDesignHint">Toca uno para verlo en tu pista.</div></div>
     </div>
-  </div>
-  <div class="panel">
-    <div class="panel-section">
-      <div class="section-title" data-i18n="activeDesign">Active Design</div>
+    <div class="design-grid" id="designGrid"></div>
+  </aside>
+  <main class="stage">
+    <div class="stage-inner">
+      <div class="stage-bar">
+        <div class="view-toggle">
+          <button class="view-btn active" id="viewTop" onclick="setView('top')" data-i18n="viewTop">Vista superior</button>
+          <button class="view-btn" id="view3d" onclick="setView('3d')" data-i18n="view3d">Vista 3D</button>
+        </div>
+        <div class="stage-name" id="stageName">Blurry</div>
+      </div>
+      <div class="floor-container" id="floorContainer">
+        <canvas id="mainCanvas" width="1024" height="1024"></canvas>
+        <div id="threeWrap"></div>
+        <div id="transitionOverlay"></div>
+        <div class="dim-mark dim-w"><span id="dimWLabel"></span></div>
+        <div class="dim-mark dim-d"><span id="dimDLabel"></span></div>
+      </div>
+      <div class="canvas-label" id="canvasLabel">Vista Previa — Vista Superior</div>
+    </div>
+  </main>
+  <section class="panel">
+    <div class="panel-section current">
+      <div class="section-kicker" data-i18n="activeDesign">Diseño elegido</div>
       <div class="active-design-name" id="activeName">Blurry</div>
       <div class="active-design-desc" id="activeDesc"></div>
     </div>
     <div class="panel-section">
-      <div class="section-title" data-i18n="colorZones">Color Zones</div>
+      <div class="step-head">
+        <span class="step-num">2</span>
+        <div><div class="step-title" data-i18n="stepColors">Elige los colores</div><div class="step-hint" data-i18n="stepColorsHint">Toca una combinación lista o personaliza cada zona.</div></div>
+      </div>
+      <div class="palette-grid" id="paletteGrid"></div>
+      <div class="sub-title" data-i18n="customColors">Personaliza cada zona</div>
       <div id="colorRows"></div>
-      <div class="action-buttons">
-        <button class="btn-primary" onclick="exportPDF()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          <span data-i18n="exportPDF">Export PDF</span>
-        </button>
-        <button class="btn-secondary" onclick="resetColors()" data-i18n="reset">↺ Reset to Default</button>
+      <button class="btn-link" onclick="resetColors()" data-i18n="reset">↺ Restablecer</button>
+    </div>
+    <div class="panel-section">
+      <div class="step-head">
+        <span class="step-num">3</span>
+        <div><div class="step-title" data-i18n="dimensions">Medidas de la pista</div></div>
+      </div>
+      <div class="dim-grid">
+        <div>
+          <span class="stepper-label" data-i18n="width">Ancho</span>
+          <div class="stepper-ctl">
+            <button id="dimWMinus" onclick="stepDim('w',-1)" aria-label="−">−</button>
+            <output id="dimWVal"></output>
+            <button id="dimWPlus" onclick="stepDim('w',1)" aria-label="+">+</button>
+          </div>
+        </div>
+        <div>
+          <span class="stepper-label" data-i18n="depth">Largo</span>
+          <div class="stepper-ctl">
+            <button id="dimDMinus" onclick="stepDim('d',-1)" aria-label="−">−</button>
+            <output id="dimDVal"></output>
+            <button id="dimDPlus" onclick="stepDim('d',1)" aria-label="+">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="fit-row">
+        <span class="fit-label" data-i18n="fit">Ajuste del diseño</span>
+        <div class="seg">
+          <button class="seg-btn active" id="fitCover" onclick="setFit('cover')" data-i18n="fitCover">Cubrir</button>
+          <button class="seg-btn" id="fitStretch" onclick="setFit('stretch')" data-i18n="fitStretch">Estirar</button>
+        </div>
+      </div>
+      <div class="zoom-row">
+        <span class="fit-label"><span data-i18n="zoom">Zoom</span> <span id="zoomVal">100%</span></span>
+        <input type="range" id="zoomRange" min="100" max="250" value="100" oninput="setZoom(this.value)">
       </div>
     </div>
     <div class="panel-section">
-      <div class="section-title" data-i18n="presets">Preset Palettes</div>
-      <div class="palette-grid" id="paletteGrid"></div>
+      <div class="step-head">
+        <span class="step-num">4</span>
+        <div><div class="step-title" data-i18n="stepExport">Descarga tu propuesta</div><div class="step-hint" data-i18n="stepExportHint">Un PDF con tu diseño, colores, medidas y vista 3D para confirmar tu pedido.</div></div>
+      </div>
+      <button class="btn-primary" onclick="exportPDF()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span data-i18n="exportPDF">Exportar PDF</span>
+      </button>
     </div>
-  </div>
+  </section>
 </div>
 <div id="pdfOverlay">
   <div class="pdf-modal">
-    <div class="pdf-modal-title" data-i18n="generating">Generating PDF…</div>
-    <div class="pdf-modal-sub" data-i18n="generatingSub">Preparing your design summary</div>
+    <div class="pdf-modal-title" data-i18n="generating">Generando PDF…</div>
+    <div class="pdf-modal-sub" data-i18n="generatingSub">Preparando el resumen de tu diseño</div>
     <div class="pdf-spinner"></div>
   </div>
 </div>
 <script>
 const T = {
   en: {
-    tagline:'Dance Floor Configurator', designs:'Designs', loading:'Loading…',
-    preview:'Dance Floor Preview — Top View', activeDesign:'Active Design',
-    colorZones:'Color Zones', exportPDF:'Export PDF', reset:'↺ Reset to Default',
+    tagline:'Dance Floor Configurator', designs:'Designs', loading:'Loading designs…',
+    preview:'Dance Floor Preview — Top View', activeDesign:'Selected design',
+    colorZones:'Color Zones', exportPDF:'Export PDF', reset:'↺ Reset colors',
+    stepDesign:'Choose your design', stepDesignHint:'Tap one to see it on your floor.',
+    stepColors:'Choose the colors', stepColorsHint:'Tap a ready-made combination or customize each zone.',
+    customColors:'Customize each zone', editColor:'Change', nColors:'{n} colors',
+    stepExport:'Download your proposal', stepExportHint:'A PDF with your design, colors, size and 3D view to confirm your order.',
     presets:'Preset Palettes', generating:'Generating PDF…', generatingSub:'Preparing your design summary',
     desc_playful:'Flowing continuous line pattern. Customize the background and line colors.',
     desc_metallic:'Organic cracked stone pattern. Customize the background and vein colors.',
@@ -264,11 +326,22 @@ const T = {
     pdf_title:'Dance Floor Configuration', pdf_design:'Selected Design',
     pdf_colors:'Color Selection', pdf_note:'Please send this document to confirm your selection.',
     pdf_date:'Date',
+    viewTop:'Top view', view3d:'3D view',
+    preview3d:'3D Preview — drag to rotate · scroll to zoom',
+    dimensions:'Floor size', width:'Width', depth:'Length',
+    fit:'Design fit', fitCover:'Cover', fitStretch:'Stretch', zoom:'Zoom',
+    pdf_size:'Floor Size', pdf_panels:'panels of 1.22 × 1.22 m', pdf_fit_cover:'Design fit: cover (cropped)', pdf_fit_stretch:'Design fit: stretched',
+    pdf_3d:'3D View', pdf_3d_note:'Illustrative render. Colors may vary slightly on the printed floor.',
+    threeMissing:'The 3D view could not be loaded. Check your internet connection.',
   },
   es: {
-    tagline:'Configurador de Pista de Baile', designs:'Diseños', loading:'Cargando…',
-    preview:'Vista Previa — Vista Superior', activeDesign:'Diseño Activo',
-    colorZones:'Zonas de Color', exportPDF:'Exportar PDF', reset:'↺ Restablecer',
+    tagline:'Configurador de Pista de Baile', designs:'Diseños', loading:'Cargando diseños…',
+    preview:'Vista Previa — Vista Superior', activeDesign:'Diseño elegido',
+    colorZones:'Zonas de Color', exportPDF:'Exportar PDF', reset:'↺ Restablecer colores',
+    stepDesign:'Elige tu diseño', stepDesignHint:'Toca uno para verlo en tu pista.',
+    stepColors:'Elige los colores', stepColorsHint:'Toca una combinación lista o personaliza cada zona.',
+    customColors:'Personaliza cada zona', editColor:'Cambiar', nColors:'{n} colores',
+    stepExport:'Descarga tu propuesta', stepExportHint:'Un PDF con tu diseño, colores, medidas y vista 3D para confirmar tu pedido.',
     presets:'Paletas Predefinidas', generating:'Generando PDF…', generatingSub:'Preparando el resumen de tu diseño',
     desc_playful:'Patrón de línea continua fluida. Personaliza el fondo y las líneas.',
     desc_metallic:'Patrón de piedra agrietada. Personaliza el fondo y las venas.',
@@ -290,17 +363,27 @@ const T = {
     pdf_title:'Configuración de Pista de Baile', pdf_design:'Diseño Seleccionado',
     pdf_colors:'Selección de Colores', pdf_note:'Por favor envía este documento para confirmar tu selección.',
     pdf_date:'Fecha',
+    viewTop:'Vista superior', view3d:'Vista 3D',
+    preview3d:'Vista 3D — arrastra para girar · rueda para acercar',
+    dimensions:'Medidas de la pista', width:'Ancho', depth:'Largo',
+    fit:'Ajuste del diseño', fitCover:'Cubrir', fitStretch:'Estirar', zoom:'Zoom',
+    pdf_size:'Medidas de la Pista', pdf_panels:'paneles de 1.22 × 1.22 m', pdf_fit_cover:'Ajuste del diseño: cubrir (recortado)', pdf_fit_stretch:'Ajuste del diseño: estirado',
+    pdf_3d:'Vista 3D', pdf_3d_note:'Render ilustrativo. Los colores pueden variar ligeramente en la pista impresa.',
+    threeMissing:'No se pudo cargar la vista 3D. Revisa tu conexión a internet.',
   }
 };
-let lang='en';
+let lang='es';
 function t(k){ return T[lang][k]||T.en[k]||k; }
 function setLang(l) {
   lang=l;
   document.getElementById('btn-en').classList.toggle('active',l==='en');
   document.getElementById('btn-es').classList.toggle('active',l==='es');
   document.getElementById('logoSubtitle').textContent = l==='en' ? 'Express Designs' : 'Diseños Express';
+  document.documentElement.lang=l;
+  document.title = l==='en' ? 'Kruzeta — Dance Floor Configurator' : 'Kruzeta — Configurador de Pista de Baile';
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.getAttribute('data-i18n')); });
-  buildUI(); buildPalettes();
+  document.querySelectorAll('.dc-meta').forEach(el=>{ el.textContent=t('nColors').replace('{n}',el.dataset.zones); });
+  buildUI(); buildPalettes(); updateLabel();
 }
 
 const MASKS = {
@@ -471,11 +554,41 @@ function loadAllImages() {
 }
 function onAllLoaded() {
   document.getElementById('loading').classList.add('hidden');
-  renderThumbnails(); renderMain(); buildUI(); buildPalettes();
+  buildGallery(); updateDimUI(); layoutFloor(); renderThumbnails(); renderMain(); setLang(lang);
+  window.addEventListener('resize', ()=>{
+    // En celular la barra del navegador cambia la altura al hacer scroll; solo recalculamos si cambia el ancho
+    if(window.innerWidth!==vpBase.w){ vpBase={w:window.innerWidth,h:window.innerHeight}; }
+    layoutFloor();
+  });
+}
+let vpBase={w:window.innerWidth,h:window.innerHeight};
+
+/* Galería de diseños (paso 1) */
+const DESIGN_ORDER=['blurry','geoda','landscape','metallic','minimalistic','playful','shadow','stars','strokes','volcano','wash','waves'];
+const THUMB=192;
+function buildGallery(){
+  const grid=document.getElementById('designGrid'); grid.innerHTML='';
+  DESIGN_ORDER.forEach(d=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='design-card'; b.dataset.design=d;
+    b.onclick=()=>selectDesign(d);
+    b.innerHTML=`<span class="dc-thumb"><canvas id="thumb-${d}" width="${THUMB}" height="${THUMB}"></canvas><span class="dc-check" aria-hidden="true">✓</span></span>
+      <span class="dc-name">${DESIGNS[d].name}</span><span class="dc-meta" data-zones="${DESIGNS[d].zones.length}"></span>`;
+    grid.appendChild(b);
+  });
+  markActiveCard();
+}
+function markActiveCard(){
+  document.querySelectorAll('.design-card').forEach(b=>{
+    const on=b.dataset.design===currentDesign;
+    b.classList.toggle('active',on); b.setAttribute('aria-pressed',on);
+  });
 }
 function hexToRgb(hex){ return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]; }
 
-function renderToCanvas(canvas,design,dc,size) {
+function renderToCanvas(canvas,design,dc,size,opts) {
+  opts=opts||{};
+  const aspect=opts.aspect||1, fit=opts.fit||'cover', z=opts.zoom||1;
   const ctx=canvas.getContext('2d');
   const w=canvas.width,h=canvas.height;
   ctx.clearRect(0,0,w,h);
@@ -485,9 +598,13 @@ function renderToCanvas(canvas,design,dc,size) {
   zones.forEach(zone=>{
     const maskImg=maskImages[zone.mask];
     if(!maskImg) return;
+    const iw=maskImg.naturalWidth||maskImg.width, ih=maskImg.naturalHeight||maskImg.height;
+    let sw=iw/z, sh=ih/z;
+    if(fit==='cover'){ const ia=iw/ih; if(aspect>ia) sh=(iw/aspect)/z; else sw=(ih*aspect)/z; }
+    const sx=(iw-sw)/2, sy=(ih-sh)/2;
     const off=document.createElement('canvas'); off.width=w; off.height=h;
     const octx=off.getContext('2d');
-    octx.drawImage(maskImg,0,0,w,h);
+    octx.drawImage(maskImg,sx,sy,sw,sh,0,0,w,h);
     const maskData=octx.getImageData(0,0,w,h);
     const cc=document.createElement('canvas'); cc.width=w; cc.height=h;
     const cctx=cc.getContext('2d');
@@ -499,32 +616,38 @@ function renderToCanvas(canvas,design,dc,size) {
     cctx.putImageData(imgData,0,0); ctx.drawImage(cc,0,0);
   });
   if(size>100){
-    const v=ctx.createRadialGradient(w/2,h/2,w*0.3,w/2,h/2,w*0.75);
+    const v=ctx.createRadialGradient(w/2,h/2,Math.max(w,h)*0.3,w/2,h/2,Math.max(w,h)*0.75);
     v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,0.15)');
     ctx.fillStyle=v; ctx.fillRect(0,0,w,h);
   }
 }
 
-function renderMain(){ renderToCanvas(document.getElementById('mainCanvas'),currentDesign,colors[currentDesign],1024); }
-function renderThumbnails(){ Object.keys(DESIGNS).forEach(d=>{ const c=document.getElementById('thumb-'+d); if(c) renderToCanvas(c,d,colors[d],44); }); }
+function renderOpts(){ return {aspect:floorAspect(),fit:fitMode,zoom:zoomLevel}; }
+function renderMain(){
+  const c=document.getElementById('mainCanvas');
+  const MAX=1024, a=floorAspect();
+  const cw=a>=1?MAX:Math.round(MAX*a), ch=a>=1?Math.round(MAX/a):MAX;
+  if(c.width!==cw||c.height!==ch){ c.width=cw; c.height=ch; }
+  renderToCanvas(c,currentDesign,colors[currentDesign],MAX,renderOpts());
+  if(three){ three.texture.needsUpdate=true; }
+}
+function renderThumb(d){ const c=document.getElementById('thumb-'+d); if(c) renderToCanvas(c,d,colors[d],44); }
+function renderThumbnails(){ Object.keys(DESIGNS).forEach(renderThumb); }
 
 function buildUI() {
   const container=document.getElementById('colorRows'); container.innerHTML='';
   const design=DESIGNS[currentDesign];
   document.getElementById('activeName').textContent=design.name;
+  document.getElementById('stageName').textContent=design.name;
   document.getElementById('activeDesc').textContent=t(design.descKey);
   design.zones.forEach(zone=>{
     const col=colors[currentDesign][zone.id]||zone.default;
     const row=document.createElement('div'); row.className='color-row';
-    row.innerHTML=`<div class="color-row-left">
-      <div class="color-zone-indicator" style="background:${col}"></div>
+    row.innerHTML=`<div class="color-dot" id="swatch-${zone.id}" style="background:${col}"></div>
       <div><div class="color-row-label">${t(zone.labelKey)}</div>
       <div class="color-row-hex" id="hex-${zone.id}">${col.toUpperCase()}</div></div>
-      </div>
-      <div class="color-swatch-wrapper">
-        <div class="color-swatch-display" id="swatch-${zone.id}" style="background:${col}"></div>
-        <input type="color" value="${col}" oninput="updateColor('${zone.id}',this.value)" onchange="updateColor('${zone.id}',this.value)">
-      </div>`;
+      <span class="color-edit">${t('editColor')}</span>
+      <input type="color" value="${col}" aria-label="${t(zone.labelKey)}" oninput="updateColor('${zone.id}',this.value)" onchange="updateColor('${zone.id}',this.value)">`;
     container.appendChild(row);
   });
 }
@@ -532,10 +655,11 @@ function buildUI() {
 function buildPalettes() {
   const grid=document.getElementById('paletteGrid'); grid.innerHTML='';
   DESIGNS[currentDesign].palettes.forEach((palette,i)=>{
-    const item=document.createElement('div');
-    item.className='palette-item'+(i===0?' active':'');
+    const item=document.createElement('button');
+    item.type='button'; item.className='palette-item'+(i===0?' active':'');
+    item.setAttribute('aria-label',(i+1)+'');
     item.onclick=()=>applyPalette(palette,item);
-    const c=document.createElement('canvas'); c.width=60; c.height=60;
+    const c=document.createElement('canvas'); c.width=120; c.height=120;
     item.appendChild(c); grid.appendChild(item);
     renderToCanvas(c,currentDesign,palette,60);
   });
@@ -545,8 +669,7 @@ function updateColor(zoneId,hex) {
   colors[currentDesign][zoneId]=hex;
   const sw=document.getElementById('swatch-'+zoneId); if(sw) sw.style.background=hex;
   const hx=document.getElementById('hex-'+zoneId); if(hx) hx.textContent=hex.toUpperCase();
-  document.querySelectorAll('.color-zone-indicator').forEach((el,idx)=>{ const z=DESIGNS[currentDesign].zones[idx]; if(z&&z.id===zoneId) el.style.background=hex; });
-  renderMain(); renderThumbnails();
+  renderMain(); renderThumb(currentDesign);
 }
 
 function applyPalette(palette,clickedItem) {
@@ -556,13 +679,11 @@ function applyPalette(palette,clickedItem) {
   buildUI();
 }
 
-function selectDesign(design,btn) {
+function selectDesign(design) {
   if(design===currentDesign) return;
   const overlay=document.getElementById('transitionOverlay'); overlay.classList.add('show');
+  currentDesign=design; markActiveCard();
   setTimeout(()=>{
-    currentDesign=design;
-    document.querySelectorAll('.design-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
     buildUI(); buildPalettes(); renderMain();
     setTimeout(()=>overlay.classList.remove('show'),50);
   },220);
@@ -570,7 +691,7 @@ function selectDesign(design,btn) {
 
 function resetColors() {
   DESIGNS[currentDesign].zones.forEach(z=>{ colors[currentDesign][z.id]=z.default; });
-  buildUI(); renderMain(); renderThumbnails();
+  buildUI(); renderMain(); renderThumb(currentDesign);
   document.querySelectorAll('.palette-item').forEach((el,i)=>el.classList.toggle('active',i===0));
 }
 
@@ -588,7 +709,7 @@ async function exportPDF() {
     doc.setFontSize(8); doc.setTextColor(201,168,76); doc.setCharSpace(3);
     doc.text('DISEÑOS EXPRESS',margin,34); doc.setCharSpace(0);
     doc.setTextColor(180,170,155); doc.setFontSize(8); doc.setCharSpace(2);
-    doc.text('DANCE FLOOR CONFIGURATOR',margin,44); doc.setCharSpace(0);
+    doc.text(t('tagline').toUpperCase(),margin,44); doc.setCharSpace(0);
     doc.setTextColor(26,26,26); doc.setFontSize(26); doc.setFont('helvetica','bold');
     doc.text(t('pdf_title'),margin,76);
     const dateStr=new Date().toLocaleDateString(lang==='es'?'es-MX':'en-US',{year:'numeric',month:'long',day:'numeric'});
@@ -599,18 +720,33 @@ async function exportPDF() {
     doc.text(t('pdf_design').toUpperCase(),margin,101); doc.setCharSpace(0);
     doc.setFontSize(18); doc.setTextColor(26,26,26); doc.setFont('helvetica','bold');
     doc.text(DESIGNS[currentDesign].name,margin,112);
-    const previewCanvas=document.createElement('canvas'); previewCanvas.width=800; previewCanvas.height=800;
-    renderToCanvas(previewCanvas,currentDesign,colors[currentDesign],800);
+    // ── Vista superior (respeta la proporción de la pista) ──
+    const aspect=floorAspect();
+    const previewCanvas=document.createElement('canvas'); const PW=1000;
+    if(aspect>=1){ previewCanvas.width=PW; previewCanvas.height=Math.round(PW/aspect); } else { previewCanvas.height=PW; previewCanvas.width=Math.round(PW*aspect); }
+    renderToCanvas(previewCanvas,currentDesign,colors[currentDesign],PW,renderOpts());
     const previewImg=previewCanvas.toDataURL('image/jpeg',0.92);
-    const imgSize=130,imgX=(W-imgSize)/2;
-    doc.addImage(previewImg,'JPEG',imgX,120,imgSize,imgSize);
-    doc.setDrawColor(220,215,205); doc.setLineWidth(0.3); doc.rect(imgX,120,imgSize,imgSize);
-    const zonesY=262;
-    doc.setDrawColor(220,215,205); doc.setLineWidth(0.4); doc.line(margin,zonesY-4,W-margin,zonesY-4);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(136,136,136); doc.setCharSpace(2);
-    doc.text(t('pdf_colors').toUpperCase(),margin,zonesY+6); doc.setCharSpace(0);
+    const maxImgW=W-margin*2, maxImgH=88;
+    let imgW=maxImgW, imgH=imgW/aspect; if(imgH>maxImgH){ imgH=maxImgH; imgW=imgH*aspect; }
+    const imgX=(W-imgW)/2, imgY=118;
+    doc.addImage(previewImg,'JPEG',imgX,imgY,imgW,imgH);
+    doc.setDrawColor(220,215,205); doc.setLineWidth(0.3); doc.rect(imgX,imgY,imgW,imgH);
+    // ── Medidas ──
+    let y=imgY+maxImgH+8;
+    doc.setDrawColor(220,215,205); doc.setLineWidth(0.4); doc.line(margin,y,W-margin,y);
+    y+=8; doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(136,136,136); doc.setCharSpace(2);
+    doc.text(t('pdf_size').toUpperCase(),margin,y); doc.setCharSpace(0);
+    y+=7; doc.setFontSize(13); doc.setTextColor(26,26,26); doc.setFont('helvetica','bold');
+    doc.text(fm(floor.w)+' × '+fm(floor.d)+' m',margin,y);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(136,136,136);
+    doc.text(floorArea()+' m²  ·  '+(floor.w*floor.d)+' '+t('pdf_panels')+'  ·  '+t(fitMode==='cover'?'pdf_fit_cover':'pdf_fit_stretch')+(zoomLevel!==1?' · zoom '+Math.round(zoomLevel*100)+'%':''),W-margin,y,{align:'right'});
+    // ── Colores ──
+    y+=6; doc.setDrawColor(220,215,205); doc.setLineWidth(0.4); doc.line(margin,y,W-margin,y);
+    y+=8; doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(136,136,136); doc.setCharSpace(2);
+    doc.text(t('pdf_colors').toUpperCase(),margin,y); doc.setCharSpace(0);
+    const drawColors=(swatchY)=>{
     const zones=DESIGNS[currentDesign].zones;
-    const swatchY=zonesY+16,swatchSize=12;
+    const swatchSize=12;
     const colWidth=(W-margin*2)/zones.length;
     zones.forEach((zone,i)=>{
       const col=colors[currentDesign][zone.id]||zone.default;
@@ -623,13 +759,204 @@ async function exportPDF() {
       doc.setFontSize(9); doc.setTextColor(26,26,26); doc.setFont('helvetica','bold');
       doc.text(col.toUpperCase(),x+swatchSize+3,swatchY+11);
     });
-    doc.setFillColor(245,240,232); doc.rect(0,H-24,W,24,'F');
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(136,136,136);
-    doc.text(t('pdf_note'),margin,H-11);
-    doc.setTextColor(201,168,76); doc.text('kruzeta.com',W-margin,H-11,{align:'right'});
-    doc.save(`kruzeta-${currentDesign}-${new Date().toISOString().slice(0,10)}.pdf`);
+    };
+    drawColors(y+5);
+    const drawFooter=()=>{
+      doc.setFillColor(245,240,232); doc.rect(0,H-24,W,24,'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(136,136,136);
+      doc.text(t('pdf_note'),margin,H-11);
+      doc.setTextColor(201,168,76); doc.text('kruzeta.com',W-margin,H-11,{align:'right'});
+    };
+    drawFooter();
+    // ── Página 2: vista 3D ──
+    const snap=snapshot3D(1500,1125);
+    if(snap){
+      doc.addPage();
+      doc.setFillColor(26,26,26); doc.rect(0,0,W,30,'F');
+      doc.setFillColor(201,168,76); doc.rect(0,30,W,1.5,'F');
+      doc.setTextColor(245,240,232); doc.setFont('helvetica','normal'); doc.setFontSize(16); doc.text('KRUZETA',margin,19);
+      doc.setFontSize(8); doc.setTextColor(180,170,155); doc.setCharSpace(2); doc.text(t('pdf_3d').toUpperCase(),W-margin,19,{align:'right'}); doc.setCharSpace(0);
+      doc.setTextColor(26,26,26); doc.setFontSize(18); doc.setFont('helvetica','bold');
+      doc.text(DESIGNS[currentDesign].name+'  ·  '+fm(floor.w)+' × '+fm(floor.d)+' m',margin,48);
+      const sW=W-margin*2, sH=sW*(1125/1500);
+      doc.addImage(snap,'JPEG',margin,58,sW,sH);
+      doc.setDrawColor(220,215,205); doc.setLineWidth(0.3); doc.rect(margin,58,sW,sH);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(136,136,136);
+      doc.text(t('pdf_3d_note'),margin,58+sH+8);
+      let y2=58+sH+18; doc.setDrawColor(220,215,205); doc.setLineWidth(0.4); doc.line(margin,y2,W-margin,y2);
+      y2+=8; doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(136,136,136); doc.setCharSpace(2);
+      doc.text(t('pdf_colors').toUpperCase(),margin,y2); doc.setCharSpace(0);
+      drawColors(y2+5);
+      drawFooter();
+    }
+    doc.save(`kruzeta-${currentDesign}-${fm(floor.w)}x${fm(floor.d)}m-${new Date().toISOString().slice(0,10)}.pdf`);
   } catch(e){ console.error(e); alert('Error generating PDF.'); }
   document.getElementById('pdfOverlay').classList.remove('show');
+}
+
+/* ══════════════ MEDIDAS DE LA PISTA ══════════════ */
+const PANEL=1.22, MIN_PANELS=2, MAX_PANELS=12;
+// TODO(config): tamaño inicial de la pista en paneles (4×3 = 4.88 × 3.66 m)
+let floor={w:4,d:3};
+let fitMode='cover', zoomLevel=1, viewMode='top';
+function fm(n){ return (n*PANEL).toFixed(2); }
+function floorW(){ return floor.w*PANEL; }
+function floorD(){ return floor.d*PANEL; }
+function floorAspect(){ return floor.w/floor.d; }
+function floorArea(){ return (floorW()*floorD()).toFixed(2); }
+
+// La pista mínima es 2.44 × 3.66 m: no se permite que ambos lados queden en el mínimo
+function canSet(w,d){ return w>=MIN_PANELS&&d>=MIN_PANELS&&w<=MAX_PANELS&&d<=MAX_PANELS&&!(w===MIN_PANELS&&d===MIN_PANELS); }
+function stepDim(which,delta){
+  const n={w:floor.w,d:floor.d}; n[which]+=delta;
+  if(!canSet(n.w,n.d)) return;
+  floor=n; updateDimUI(); afterFloorChange();
+}
+function updateDimUI(){
+  document.getElementById('dimWVal').textContent=fm(floor.w)+' m';
+  document.getElementById('dimDVal').textContent=fm(floor.d)+' m';
+  document.getElementById('dimWMinus').disabled=!canSet(floor.w-1,floor.d);
+  document.getElementById('dimWPlus').disabled=!canSet(floor.w+1,floor.d);
+  document.getElementById('dimDMinus').disabled=!canSet(floor.w,floor.d-1);
+  document.getElementById('dimDPlus').disabled=!canSet(floor.w,floor.d+1);
+}
+function afterFloorChange(){
+  layoutFloor(); renderMain();
+  if(three){ buildFloorMesh(); }
+  updateLabel();
+}
+function setFit(m){
+  fitMode=m;
+  document.getElementById('fitCover').classList.toggle('active',m==='cover');
+  document.getElementById('fitStretch').classList.toggle('active',m==='stretch');
+  renderMain();
+}
+function setZoom(v){ zoomLevel=(+v)/100; document.getElementById('zoomVal').textContent=v+'%'; renderMain(); }
+function updateLabel(){
+  const el=document.getElementById('canvasLabel'); if(!el) return;
+  el.textContent = viewMode==='3d' ? t('preview3d') : t('preview')+'  ·  '+fm(floor.w)+' × '+fm(floor.d)+' m';
+  document.getElementById('dimWLabel').textContent=fm(floor.w)+' m';
+  document.getElementById('dimDLabel').textContent=fm(floor.d)+' m';
+}
+function isMobile(){ return window.matchMedia('(max-width:960px)').matches; }
+function layoutFloor(){
+  const stage=document.querySelector('.stage'), fc=document.getElementById('floorContainer');
+  if(!stage||!fc) return;
+  const cs=getComputedStyle(stage), mob=isMobile(), is3d=viewMode==='3d';
+  const fcs=getComputedStyle(fc);
+  // espacio que ocupan las cotas de medidas alrededor de la pista
+  const mX=is3d?0:parseFloat(fcs.marginLeft)+parseFloat(fcs.marginRight);
+  const mY=is3d?0:parseFloat(fcs.marginTop);
+  const availW=stage.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-mX;
+  // En celular la vista previa se queda fija arriba: limitamos su alto para dejar ver las opciones
+  const availH=mob
+    ? Math.round(vpBase.h*(is3d?0.32:0.28))
+    : stage.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-mY-100;
+  let w,h;
+  if(is3d){
+    w=Math.min(availW,880); h=Math.min(Math.max(availH,200),w*0.72);
+    if(w>h/0.5) w=h/0.5;
+  } else {
+    const a=floorAspect(); w=Math.min(availW,mob?availW:640); h=w/a;
+    if(h>availH){ h=Math.max(availH,120); w=h*a; }
+  }
+  fc.style.width=Math.round(w)+'px'; fc.style.height=Math.round(h)+'px';
+  if(three) resizeThree();
+}
+function setView(m){
+  if(m==='3d'&&!ensureThree()){ alert(t('threeMissing')); return; }
+  viewMode=m;
+  document.getElementById('viewTop').classList.toggle('active',m==='top');
+  document.getElementById('view3d').classList.toggle('active',m==='3d');
+  document.getElementById('floorContainer').classList.toggle('mode-3d',m==='3d');
+  layoutFloor(); updateLabel();
+}
+
+/* ══════════════ VISTA 3D (Three.js) ══════════════ */
+let three=null;
+function ensureThree(){ if(three) return true; if(!window.THREE) return false; try{ initThree(); return true; }catch(e){ console.error(e); return false; } }
+function initThree(){
+  const wrap=document.getElementById('threeWrap');
+  const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  wrap.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x101010);
+  scene.fog=new THREE.Fog(0x101010,22,60);
+  const camera=new THREE.PerspectiveCamera(36,1,0.1,200);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:0x151412,roughness:0.95,metalness:0}));
+  ground.rotation.x=-Math.PI/2; ground.position.y=-0.002; ground.receiveShadow=true; scene.add(ground);
+  scene.add(new THREE.HemisphereLight(0xfff4e2,0x1a1a1a,0.55));
+  const key=new THREE.DirectionalLight(0xfff1d8,0.75); key.position.set(7,12,5); key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048); const sc=key.shadow.camera; sc.left=-14; sc.right=14; sc.top=14; sc.bottom=-14; sc.near=1; sc.far=50; key.shadow.bias=-0.0006; key.shadow.radius=4;
+  scene.add(key);
+  const fill=new THREE.DirectionalLight(0xc9a84c,0.22); fill.position.set(-8,5,-6); scene.add(fill);
+  const spot=new THREE.SpotLight(0xffe6bd,0.35,60,Math.PI/4.5,0.7,1); spot.position.set(0,11,0); scene.add(spot);
+  const texture=new THREE.CanvasTexture(document.getElementById('mainCanvas'));
+  texture.encoding=THREE.sRGBEncoding;
+  texture.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  three={renderer,scene,camera,texture,floorMesh:null,theta:0.55,phi:1.02,radius:10,auto:true,lastT:0};
+  buildFloorMesh();
+  setupOrbit(renderer.domElement);
+  resizeThree();
+  requestAnimationFrame(animateThree);
+}
+function buildFloorMesh(){
+  const T=three; if(!T) return;
+  if(T.floorMesh){ T.scene.remove(T.floorMesh); T.floorMesh.geometry.dispose(); }
+  const w=floorW(), d=floorD(), th=0.06;
+  const geo=new THREE.BoxGeometry(w,th,d);
+  const side=new THREE.MeshStandardMaterial({color:0x3a3a3a,roughness:0.45,metalness:0.7});
+  const top=new THREE.MeshStandardMaterial({map:T.texture,roughness:0.55,metalness:0.02});
+  const mesh=new THREE.Mesh(geo,[side,side,top,side,side,side]);
+  mesh.position.y=th/2; mesh.castShadow=true;
+  T.scene.add(mesh); T.floorMesh=mesh;
+  T.radius=Math.max(w,d)*1.45+2.5;
+  T.texture.needsUpdate=true;
+}
+function resizeThree(){
+  const T=three; if(!T) return;
+  const wrap=document.getElementById('threeWrap');
+  const w=wrap.clientWidth||600, h=wrap.clientHeight||400;
+  T.renderer.setSize(w,h,false); T.camera.aspect=w/h; T.camera.updateProjectionMatrix();
+}
+function placeCamera(){
+  const T=three; const r=T.radius, p=T.phi, th=T.theta;
+  T.camera.position.set(r*Math.sin(p)*Math.sin(th), r*Math.cos(p), r*Math.sin(p)*Math.cos(th));
+  T.camera.lookAt(0,0,0);
+}
+function animateThree(ts){
+  requestAnimationFrame(animateThree);
+  const T=three; if(!T||viewMode!=='3d') return;
+  const dt=Math.min(0.05,(ts-(T.lastT||ts))/1000); T.lastT=ts;
+  if(T.auto) T.theta+=dt*0.12;
+  placeCamera(); T.renderer.render(T.scene,T.camera);
+}
+function setupOrbit(el){
+  const T=three; let dragging=false, lx=0, ly=0, pinch=0;
+  const clampPhi=v=>Math.min(1.42,Math.max(0.18,v));
+  const clampR=v=>Math.min(45,Math.max(2.5,v));
+  el.addEventListener('pointerdown',e=>{ dragging=true; T.auto=false; lx=e.clientX; ly=e.clientY; el.setPointerCapture(e.pointerId); });
+  el.addEventListener('pointermove',e=>{ if(!dragging) return; T.theta-=(e.clientX-lx)*0.006; T.phi=clampPhi(T.phi-(e.clientY-ly)*0.006); lx=e.clientX; ly=e.clientY; });
+  const stop=()=>{ dragging=false; };
+  el.addEventListener('pointerup',stop); el.addEventListener('pointercancel',stop); el.addEventListener('pointerleave',stop);
+  el.addEventListener('wheel',e=>{ e.preventDefault(); T.auto=false; T.radius=clampR(T.radius*(1+Math.sign(e.deltaY)*0.08)); },{passive:false});
+  el.addEventListener('touchstart',e=>{ if(e.touches.length===2){ pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); } },{passive:true});
+  el.addEventListener('touchmove',e=>{ if(e.touches.length===2&&pinch){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); T.radius=clampR(T.radius*(pinch/d)); pinch=d; } },{passive:true});
+  el.addEventListener('dblclick',()=>{ T.theta=0.55; T.phi=1.02; T.radius=Math.max(floorW(),floorD())*1.45+2.5; T.auto=true; });
+}
+function snapshot3D(w,h){
+  if(!ensureThree()) return null;
+  const T=three;
+  const saved={theta:T.theta,phi:T.phi,radius:T.radius};
+  T.theta=0.62; T.phi=1.0; T.radius=Math.max(floorW(),floorD())*1.4+2.2;
+  T.renderer.setSize(w,h,false); T.camera.aspect=w/h; T.camera.updateProjectionMatrix();
+  T.texture.needsUpdate=true; placeCamera(); T.renderer.render(T.scene,T.camera);
+  const url=T.renderer.domElement.toDataURL('image/jpeg',0.9);
+  Object.assign(T,saved); resizeThree(); placeCamera();
+  return url;
 }
 
 loadAllImages();
