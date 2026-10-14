@@ -8,9 +8,10 @@
   "descripcion_corta": "Configurador visual de pistas de baile para bodas y eventos: elige diseño, colores y medidas, y exporta la propuesta a PDF. Sitio de una sola página, bilingüe (ES/EN).",
   "estado_general": "entregado",
   "urls": {
-    "produccion": "https://jltg90.github.io/kruzetaexpress/",
+    "produccion": "https://kruzetaexpress.vercel.app",
     "repo": "https://github.com/jltg90/kruzetaexpress",
-    "preview": "https://kruzetaexpress-preview.vercel.app"
+    "preview": "https://kruzetaexpress-preview.vercel.app",
+    "github_pages": "https://jltg90.github.io/kruzetaexpress/"
   },
   "modulos": {
     "auth_login": "no_aplica",
@@ -31,5 +32,5 @@
   "screenshot": "/screenshots/kruzetaexpress.png",
   "ultima_sesion": "2026-10-14",
   "siguiente_paso": "Confirmar con el cliente la nueva versión en producción (rediseño móvil, galería de diseños en cuadrícula, pasos 1–4). Pendiente opcional: bajar el peso de la página (17 MB) sacando las máscaras base64 a archivos aparte para que cargue más rápido en celular.",
-  "notas": "Sitio estático de una sola página (HTML/CSS/JS vanilla), sin backend. Export a PDF vía jsPDF; vista 3D vía Three.js r128 (cdnjs). Desplegado en GitHub Pages (jltg90.github.io/kruzetaexpress) desde la rama main, no en Vercel. El index.html pesa 17 MB por las máscaras PNG embebidas en base64 y usa CRLF. Cambios 2026-09-09 (rama feature/3d-medidas) y rediseño móvil 2026-10-14 publicados en main el 2026-10-14 a pedido del dueño. Preview de la rama en proyecto Vercel aparte kruzetaexpress-preview (desplegado desde carpeta temporal con solo index.html; no es la producción del cliente). Respaldo: https://raw.githack.com/jltg90/kruzetaexpress/feature/3d-medidas/index.html (muestra un aviso intermedio)."
+  "notas": "Sitio estático de una sola página (HTML/CSS/JS vanilla), sin backend. Export a PDF vía jsPDF; vista 3D vía Three.js r128 (cdnjs). Producción en Vercel (proyecto kruzetaexpress, conectado al repo: cada push a main se publica solo; .vercelignore deja publicar solo index.html). GitHub Pages sigue activo desde main como respaldo. El index.html pesa 17 MB por las máscaras PNG embebidas en base64 y usa CRLF. Cambios 2026-09-09 (rama feature/3d-medidas) y rediseño móvil 2026-10-14 publicados en main el 2026-10-14 a pedido del dueño. Preview de la rama en proyecto Vercel aparte kruzetaexpress-preview (desplegado desde carpeta temporal con solo index.html; no es la producción del cliente). Respaldo: https://raw.githack.com/jltg90/kruzetaexpress/feature/3d-medidas/index.html (muestra un aviso intermedio)."
 }
