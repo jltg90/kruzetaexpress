@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kruzeta — Configurador de Pista de Baile</title>
+<title>DEMO · Configurador de Pista</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -184,14 +184,14 @@
 </head>
 <body>
 <div class="loading-screen" id="loading">
-  <div class="loader-logo">Kruzeta <span>·</span> Express</div>
+  <div class="loader-logo">Configurador <span>·</span> de Pista</div>
   <div class="loader-bar"></div>
   <span class="loader-text" data-i18n="loading">Cargando diseños…</span>
 </div>
 <header>
   <div class="brand">
-    <div class="logo">Kruzeta <span>·</span> <span id="logoSubtitle">Diseños Express</span></div>
-    <div class="tagline" data-i18n="tagline">Configurador de Pista de Baile</div>
+    <div class="logo" id="logoSubtitle">Configurador de Pista</div>
+    <div class="tagline" data-i18n="tagline">Diseña tu pista: modelo, colores y medidas</div>
   </div>
   <div class="lang-toggle">
     <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
@@ -298,7 +298,7 @@
 <script>
 const T = {
   en: {
-    tagline:'Dance Floor Configurator', designs:'Designs', loading:'Loading designs…',
+    tagline:'Design your floor: pattern, colors and size', designs:'Designs', loading:'Loading designs…',
     preview:'Dance Floor Preview — Top View', activeDesign:'Selected design',
     colorZones:'Color Zones', exportPDF:'Export PDF', reset:'↺ Reset colors',
     stepDesign:'Choose your design', stepDesignHint:'Tap one to see it on your floor.',
@@ -335,7 +335,7 @@ const T = {
     threeMissing:'The 3D view could not be loaded. Check your internet connection.',
   },
   es: {
-    tagline:'Configurador de Pista de Baile', designs:'Diseños', loading:'Cargando diseños…',
+    tagline:'Diseña tu pista: modelo, colores y medidas', designs:'Diseños', loading:'Cargando diseños…',
     preview:'Vista Previa — Vista Superior', activeDesign:'Diseño elegido',
     colorZones:'Zonas de Color', exportPDF:'Exportar PDF', reset:'↺ Restablecer colores',
     stepDesign:'Elige tu diseño', stepDesignHint:'Toca uno para verlo en tu pista.',
@@ -378,9 +378,9 @@ function setLang(l) {
   lang=l;
   document.getElementById('btn-en').classList.toggle('active',l==='en');
   document.getElementById('btn-es').classList.toggle('active',l==='es');
-  document.getElementById('logoSubtitle').textContent = l==='en' ? 'Express Designs' : 'Diseños Express';
+  document.getElementById('logoSubtitle').textContent = l==='en' ? 'Dance Floor Configurator' : 'Configurador de Pista';
   document.documentElement.lang=l;
-  document.title = l==='en' ? 'Kruzeta — Dance Floor Configurator' : 'Kruzeta — Configurador de Pista de Baile';
+  document.title = l==='en' ? 'DEMO · Dance Floor Configurator' : 'DEMO · Configurador de Pista';
   document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.getAttribute('data-i18n')); });
   document.querySelectorAll('.dc-meta').forEach(el=>{ el.textContent=t('nColors').replace('{n}',el.dataset.zones); });
   buildUI(); buildPalettes(); updateLabel();
@@ -705,9 +705,9 @@ async function exportPDF() {
     doc.setFillColor(26,26,26); doc.rect(0,0,W,52,'F');
     doc.setFillColor(201,168,76); doc.rect(0,52,W,1.5,'F');
     doc.setTextColor(245,240,232); doc.setFont('helvetica','normal'); doc.setFontSize(22);
-    doc.text('KRUZETA',margin,26);
+    doc.text('CONFIGURADOR DE PISTA',margin,26);
     doc.setFontSize(8); doc.setTextColor(201,168,76); doc.setCharSpace(3);
-    doc.text('DISEÑOS EXPRESS',margin,34); doc.setCharSpace(0);
+    doc.text('DEMOSTRACIÓN',margin,34); doc.setCharSpace(0);
     doc.setTextColor(180,170,155); doc.setFontSize(8); doc.setCharSpace(2);
     doc.text(t('tagline').toUpperCase(),margin,44); doc.setCharSpace(0);
     doc.setTextColor(26,26,26); doc.setFontSize(26); doc.setFont('helvetica','bold');
@@ -765,7 +765,7 @@ async function exportPDF() {
       doc.setFillColor(245,240,232); doc.rect(0,H-24,W,24,'F');
       doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(136,136,136);
       doc.text(t('pdf_note'),margin,H-11);
-      doc.setTextColor(201,168,76); doc.text('kruzeta.com',W-margin,H-11,{align:'right'});
+      doc.setTextColor(201,168,76); doc.text('Documento de demostración',W-margin,H-11,{align:'right'});
     };
     drawFooter();
     // ── Página 2: vista 3D ──
@@ -774,7 +774,7 @@ async function exportPDF() {
       doc.addPage();
       doc.setFillColor(26,26,26); doc.rect(0,0,W,30,'F');
       doc.setFillColor(201,168,76); doc.rect(0,30,W,1.5,'F');
-      doc.setTextColor(245,240,232); doc.setFont('helvetica','normal'); doc.setFontSize(16); doc.text('KRUZETA',margin,19);
+      doc.setTextColor(245,240,232); doc.setFont('helvetica','normal'); doc.setFontSize(16); doc.text('CONFIGURADOR DE PISTA',margin,19);
       doc.setFontSize(8); doc.setTextColor(180,170,155); doc.setCharSpace(2); doc.text(t('pdf_3d').toUpperCase(),W-margin,19,{align:'right'}); doc.setCharSpace(0);
       doc.setTextColor(26,26,26); doc.setFontSize(18); doc.setFont('helvetica','bold');
       doc.text(DESIGNS[currentDesign].name+'  ·  '+fm(floor.w)+' × '+fm(floor.d)+' m',margin,48);
@@ -789,7 +789,7 @@ async function exportPDF() {
       drawColors(y2+5);
       drawFooter();
     }
-    doc.save(`kruzeta-${currentDesign}-${fm(floor.w)}x${fm(floor.d)}m-${new Date().toISOString().slice(0,10)}.pdf`);
+    doc.save(`pista-${currentDesign}-${fm(floor.w)}x${fm(floor.d)}m-${new Date().toISOString().slice(0,10)}.pdf`);
   } catch(e){ console.error(e); alert('Error generating PDF.'); }
   document.getElementById('pdfOverlay').classList.remove('show');
 }
@@ -961,5 +961,12 @@ function snapshot3D(w,h){
 
 loadAllImages();
 </script>
+<!-- RAMA DEMO: letrero de demostración. Solo existe en la rama `demo`. -->
+<style>body{padding-bottom:34px}@media print{#aviso-demo{display:none}}</style>
+<div id="aviso-demo" role="status" aria-label="Ambiente de demostración" style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;height:34px;display:flex;align-items:center;justify-content:center;gap:10px;pointer-events:none;background:#0e2a33;border-top:1px solid rgba(185,148,90,.55);color:#f2f6f6;font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase">
+  <span style="width:7px;height:7px;border-radius:999px;background:#b9945a;display:inline-block"></span>
+  <span style="color:#b9945a;font-weight:600">Demostración</span>
+  <span style="opacity:.65">sistema de ejemplo</span>
+</div>
 </body>
 </html>
